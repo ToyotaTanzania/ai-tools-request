@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Karimjee Group · AI Tool Vetting & Approval</title>
+<style>
+  :root{
+    --brand:#1d3c6f; --brand-dark:#142b51; --brand-light:#e9eef6;
+    --accent:#c9a14a; --ok:#1f7a44; --okbg:#e6f4ec;
+    --bad:#b3261e; --badbg:#fbe9e8; --warn:#8a6d00; --warnbg:#fbf3da;
+    --ink:#1c2230; --muted:#5c6678; --line:#dde3ec; --bg:#f4f6fa; --card:#fff;
+    --radius:12px; --shadow:0 1px 3px rgba(20,43,81,.08),0 8px 24px rgba(20,43,81,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);background:var(--bg);font-size:14.5px;line-height:1.5}
+  h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.01em}
+  a{color:var(--brand)}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:8px;font-weight:600;font-size:14px}
+  input,select,textarea{font-family:inherit;font-size:14px;width:100%;padding:9px 11px;
+    border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-light)}
+  textarea{resize:vertical;min-height:64px}
+  label{font-size:12.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px}
+  .btn-primary{background:var(--brand);color:#fff;padding:10px 18px}
+  .btn-primary:hover{background:var(--brand-dark)}
+  .btn-ghost{background:#fff;color:var(--brand);border:1px solid var(--line);padding:8px 14px}
+  .btn-ghost:hover{border-color:var(--brand)}
+  .btn-ok{background:var(--ok);color:#fff;padding:8px 14px}
+  .btn-bad{background:var(--bad);color:#fff;padding:8px 14px}
+  .btn-sm{padding:6px 12px;font-size:13px}
+  .hidden{display:none!important}
+
+  /* ---- Login ---- */
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);padding:20px}
+  .login-card{background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.3);
+    width:100%;max-width:420px;padding:38px 34px}
+  .logo{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .logo .mark{width:42px;height:42px;border-radius:9px;background:var(--brand);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;letter-spacing:-1px}
+  .logo .name{font-size:18px;font-weight:750;color:var(--brand);line-height:1.1}
+  .logo .name small{display:block;font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+  .login-sub{color:var(--muted);font-size:13px;margin:14px 0 22px}
+  .field{margin-bottom:14px}
+  .msg{padding:10px 12px;border-radius:8px;font-size:13px;margin:6px 0 14px}
+  .msg.err{background:var(--badbg);color:var(--bad)}
+  .msg.ok{background:var(--okbg);color:var(--ok)}
+  .toggle-link{text-align:center;font-size:13px;margin-top:16px;color:var(--muted)}
+  .toggle-link a{cursor:pointer;font-weight:600}
+
+  /* ---- App shell ---- */
+  header.bar{background:var(--brand);color:#fff;padding:0 22px;display:flex;align-items:center;
+    justify-content:space-between;height:58px;position:sticky;top:0;z-index:20;box-shadow:var(--shadow)}
+  .bar .logo .name,.bar .logo .name small{color:#fff}
+  .bar .mark{background:#fff;color:var(--brand)}
+  .who{display:flex;align-items:center;gap:14px;font-size:13px}
+  .role-chip{background:rgba(255,255,255,.16);padding:4px 11px;border-radius:20px;font-weight:600;font-size:12px}
+  .bar button{background:rgba(255,255,255,.14);color:#fff;padding:7px 13px}
+  .bar button:hover{background:rgba(255,255,255,.26)}
+
+  nav.tabs{background:#fff;border-bottom:1px solid var(--line);padding:0 22px;display:flex;gap:4px;
+    position:sticky;top:58px;z-index:19;overflow-x:auto}
+  nav.tabs button{background:none;color:var(--muted);padding:14px 16px;border-bottom:3px solid transparent;
+    border-radius:0;white-space:nowrap}
+  nav.tabs button.active{color:var(--brand);border-bottom-color:var(--brand)}
+  nav.tabs button .badge{background:var(--accent);color:#3a2c00;border-radius:20px;padding:1px 8px;
+    font-size:11px;margin-left:6px;font-weight:700}
+
+  main{max-width:1080px;margin:0 auto;padding:26px 22px 60px}
+  .page-head{margin-bottom:18px}
+  .page-head h2{font-size:22px;color:var(--brand)}
+  .page-head p{color:var(--muted);margin:4px 0 0;font-size:13.5px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);margin-bottom:18px}
+  .card .card-h{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;
+    justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .card .card-b{padding:18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  @media(max-width:680px){.grid2,.grid3{grid-template-columns:1fr}}
+  .full{grid-column:1/-1}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chk{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:8px;
+    padding:7px 11px;font-size:13px;cursor:pointer;background:#fff}
+  .chk input{width:auto}
+  .chk.on{border-color:var(--brand);background:var(--brand-light)}
+
+  .tool-block{border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px;position:relative;background:#fcfdff}
+  .tool-block .rm{position:absolute;top:10px;right:10px;background:var(--badbg);color:var(--bad);
+    width:26px;height:26px;border-radius:6px;font-weight:700}
+  .tool-num{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+
+  /* status badges */
+  .b{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;letter-spacing:.02em}
+  .b.it{background:var(--brand-light);color:var(--brand)}
+  .b.leg{background:#efe7fa;color:#6b3fa0}
+  .b.coo{background:var(--warnbg);color:var(--warn)}
+  .b.ap{background:var(--okbg);color:var(--ok)}
+  .b.rj{background:var(--badbg);color:var(--bad)}
+  .b.low{background:var(--okbg);color:var(--ok)}
+  .b.medium{background:var(--warnbg);color:var(--warn)}
+  .b.high{background:var(--badbg);color:var(--bad)}
+
+  /* pipeline */
+  .pipe{display:flex;align-items:center;gap:0;margin:4px 0}
+  .pipe .step{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--muted)}
+  .pipe .dot{width:22px;height:22px;border-radius:50%;background:#e5e9f0;color:var(--muted);
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+  .pipe .dot.done{background:var(--ok);color:#fff}
+  .pipe .dot.cur{background:var(--brand);color:#fff;box-shadow:0 0 0 4px var(--brand-light)}
+  .pipe .dot.rej{background:var(--bad);color:#fff}
+  .pipe .line{width:34px;height:2px;background:var(--line)}
+  .pipe .line.done{background:var(--ok)}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}
+  tr:last-child td{border-bottom:none}
+  .meta{color:var(--muted);font-size:12.5px}
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:4px 14px;font-size:13px;margin-top:8px}
+  .kv .k{color:var(--muted);font-weight:600}
+  .empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px}
+  .reason-box{margin-top:10px}
+  .row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .reason-note{background:#f7f8fb;border-left:3px solid var(--line);padding:8px 12px;margin-top:8px;
+    font-size:12.5px;border-radius:0 6px 6px 0}
+  .reason-note.rj{border-left-color:var(--bad)}
+  .reason-note.ap{border-left-color:var(--ok)}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;
+    padding:12px 20px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:50;font-size:13.5px;opacity:0;
+    transition:opacity .2s,transform .2s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+  .stat-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .stat{flex:1;min-width:130px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow)}
+  .stat .n{font-size:26px;font-weight:750;color:var(--brand)}
+  .stat .l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+
+  /* ---- Logo lockups ---- */
+  .login-logo img{display:block;width:240px;max-width:78%;margin:0 auto 10px}
+  .login-title{text-align:center;letter-spacing:.2em;font-size:11.5px;color:var(--accent);font-weight:700;margin:0 0 4px}
+  .bar-logo{display:flex;align-items:center;gap:14px}
+  .bar-logo img{height:30px;display:block}
+  .bar-sub{font-size:10.5px;letter-spacing:.16em;color:rgba(255,255,255,.72);font-weight:700;border-left:1px solid rgba(255,255,255,.32);padding-left:14px}
+  @media(max-width:600px){.bar-sub{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login">
+  <div class="login-card">
+    <div class="login-logo"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMzUwIDEwODAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICMxODQzNzc7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogIzkzOWJhMTsKICAgICAgfQoKICAgICAgLmNscy0zIHsKICAgICAgICBmaWxsOiAjMTYxNjE2OwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8Zz4KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTY3Ny42LDQ4My4yczAsMCwwLDB0MCwwIi8+CiAgICA8bGluZSBjbGFzcz0iY2xzLTEiIHgxPSI2MTQuNyIgeTE9IjM4OS40IiB4Mj0iNjE1LjUiIHkyPSIzODkuNCIvPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNjQ2LjUsMzUyLjdoMHMwLDAsMCwwTTY0Ni40LDM1Mi42aDBzMCwwLDAsMGgwWk02NDYuNCwzNTIuNmgwbC0uMi0uMnYuMloiLz4KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTcyMS4yLDU2OC45YzAsLjItLjIuMy0uMi41LDAsLjIsMCwwLC4yLS41WiIvPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNjc1LjksNDk3LjdzMCwwLC4xLDBjMCwwLC4xLDAsLjEsMGgtLjNaIi8+CiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik02MzEuMSw1NjkuNGMwLS4xLS4xLS4zLS4yLS40LjIuNS4zLjcuMi40WiIvPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNzU1LjQsMzUxLjVjLTMxLjQtNTQuNy03OS4zLTY4LjYtNzkuMy02OC42LDAsMC00OCwxMy45LTc5LjQsNjguNi0zMS40LDU0LjgtMzMuOSw5NC4xLTMzLjIsMTIxLjguNiwyNy43LDkuOSw3Ny42LDUwLjQsMTA3LjYsMTkuMSwxNC4yLDQyLjUsMjAuOCw2Mi4yLDIwLjhzNDMtNi42LDYyLjEtMjAuOGM0MC41LTMwLDQ5LjgtNzkuOSw1MC40LTEwNy42LjYtMjcuNy0xLjgtNjcuMS0zMy4yLTEyMS44Wk03MzAuNSwzNjYuNWMxNi45LS4zLDIwLjIsMTMuMiwyMC4zLDE3LjMuMywxMS4zLTEwLjgsMTcuMi0xNS4xLDE3LjgtOC45LDEuMi0xNS41LDMtMjEuMyw3LjUtNS43LDQuNC05LjMsMTMuNy0xMCwxOS41LS40LDMuNy0uOCw5LjcsMS4yLDE2LjUsMS42LDUuMSw2LjQsMTYuNiw2LDI5LjktLjQsMTAuNi02LjcsMTkuMy0xMi42LDI0LTYuNSw1LjItNS43LDkuNS01LjksOC45LTIuMy05LjItMTIuOS0xMy4yLTEyLjktMTMuMiwwLDAsMi44LS4yLDQuNy0xLDIuNy0xLjIsNi45LTQuMSw5LjctOS4xLDMuMS01LjMsNC40LTExLjYsNC42LTE3LjQuMy0xMi42LTQuOC0yMy41LTcuOS0zMi4xLTMuMS04LjYtNC4zLTIwLjYtNC4zLTI3LjRzNC4zLTIxLjksMTQuOC0zMC4xYzExLjctOS40LDI0LTExLDI4LjYtMTEuMVpNNjkyLDUyMS41Yy0uMyw4LjctNC41LDE0LTcuMywxNi40LTYuNSw1LjYtOC40LDEwLjktOC42LDEwLjlzLTEuNy01LTguNy0xMC45Yy0yLjgtMi41LTYuOS03LjctNy4zLTE2LjQtLjYtMTcuMywxNC42LTIzLjIsMTUuOS0yMy43LDEuMy41LDE2LjUsNi41LDE1LjksMjMuN1pNNjQxLjQsMzQ1LjVjMi0yLjEsOS43LTQsMTYuNC0uNywzLjgsMS45LDYuOCw2LjUsNy43LDguMywyLjMsNC41LDEuOCw5LjYsMi4zLDkuMy41LS4zLDEuMy00LjMsMS4yLTUuOC0uMi0zLjQtLjktOC45LTQuMS0xNC0yLjUtNC01LjEtOC44LTQuOS0xNy43LjQtMTguMywxNi4xLTIzLjUsMTYuMS0yMy41LDAsMCwxNS43LDUuMiwxNi4xLDIzLjUuMiw4LjktMi40LDEzLjYtNSwxNy43LTMuMiw1LjEtMy45LDEwLjYtNC4xLDE0LDAsMS42LjcsNS42LDEuMiw1LjguNS4zLDAtNC45LDIuMy05LjMuOS0xLjgsMy44LTYuNCw3LjYtOC4zLDYuNy0zLjMsMTQuMy0xLjQsMTYuNC43LDQuMiw0LjMsNi42LDE0LjUtMy41LDI0LTIuMiwyLTExLjMsNy40LTE2LjQsMTQuMy02LjMsOC41LTgsMjAuNC03LjksMjYuOS4yLDYuNC45LDE3LjksNCwyNi44LDMuMyw5LjQsNy40LDE2LjcsNy40LDI3LjdzLTMsMjUuOC0xOC4xLDI1LjhoLS4zYy0xNS4xLDAtMTguMi0xOS41LTE4LjItMjUuOCwwLTExLDQuMS0xOC4zLDcuNC0yNy43LDMuMS04LjksMy44LTIwLjMsNC0yNi44LjItNi41LTEuNi0xOC40LTcuOC0yNi45LTUuMS02LjktMTQuMy0xMi4yLTE2LjQtMTQuMy0xMC4xLTkuNS03LjctMTkuNy0zLjUtMjRaTTYyMS42LDM2Ni41YzQuNywwLDE2LjksMS43LDI4LjYsMTEuMSwxMC41LDguMywxNC44LDIzLjMsMTQuOCwzMC4xcy0xLjIsMTguOC00LjMsMjcuNGMtMy4xLDguNi04LjIsMTkuNS03LjksMzIuMS4yLDUuOSwxLjUsMTIuMSw0LjYsMTcuNCwyLjgsNC45LDcsNy45LDkuNyw5LjEsMS44LjgsNC42LDEsNC42LDEsMCwwLTEwLjYsNC0xMi45LDEzLjItLjEuNi42LTMuNy01LjgtOC45LTUuOS00LjgtMTIuMi0xMy40LTEyLjYtMjQtLjQtMTMuMyw0LjQtMjQuOCw2LTI5LjksMi4xLTYuOCwxLjctMTIuOCwxLjItMTYuNS0uNy01LjgtNC40LTE1LjItMTAtMTkuNS01LjgtNC41LTEyLjMtNi4zLTIxLjMtNy41LTQuMy0uNi0xNS40LTYuNS0xNS4xLTE3LjguMS00LDMuNC0xNy41LDIwLjMtMTcuM1pNNTg2LjcsNDU1LjRjMS40LTMuOCwyLjUtOCwyLjgtMTkuNSwwLTIuOCwyLTIxLjEsMTUuMS0yNi45LDQuNy0yLjEsMTMuMS00LjUsMjUsMS4xLDguNCw0LDEwLjUsMTAuMSwxMS44LDEzLjQsMiw1LjMsMS43LDEyLjIuNywxNy42LTEuNCw2LjktNC41LDE0LjktNS40LDIyLjEtLjIsMi4xLS41LDkuNy0uNSw5LjctLjQtMS0yLjctNy40LTEwLjgtMTAuOS00LjUtMi0xMS0xLjMtMTYuOC00LjEtNi44LTMuMy0zLjEtMTMuMS40LTE1LjksNy4xLTUuOCwxNC44LTIuMiwxNy43LS41LDIuMiwxLjIsNC43LDQuMSw1LjIsNS4yLS40LTEuMS0xLjctNS40LTMtNy4zLTIuMS0zLjItNS02LjgtMTMuMy03LjEtMy42LS4yLTkuNywwLTEzLjcsOS40LTEuMSwyLjQtMiwxMy4zLTUuOCwxNy45LTMuOCw0LjctOC43LDguNy0xNS42LDUuNy0uNy0uMyw0LjctNiw2LjItMTBaTTYwNC45LDUxNmMtMywyLjMtOC42LDMtMTIuNywxLjItMy42LTEuNi05LjYtOC45LTkuOC0xOC41LS4zLTkuNyw0LTIzLjcsMTIuNS0yOS41LDEwLTYuOCwyMS43LTUuNywyNy44LTMuMyw1LjYsMi4zLDExLjMsOC44LDEzLDE0LDEuOSw1LjgsMy45LDkuMyw3LDE0LDMuMiw0LjcsOC4zLDcuNiwxMS40LDE0LDEuNSwyLjksMS43LDEyLjMsMS4xLDEwLjctLjYtMS42LTkuNS03LjgtMTIuNi04LjYtMi45LS43LTEwLTEuOC0xOS4xLjEtMi44LjYtNi40LS4xLTguNC0yLjEtMi0yLTMuNC03LjgtNC4xLTkuNy0xLjYtNC4xLTUuMS04LjUtMTAtOC45LTQuMS0uNS02LjksMS4xLTguMywyLjgtMi4xLDIuNy0yLDYuOC0xLjEsNS42LjktMS4zLDIuNi00LjQsNi44LTQuMywzLjUsMCw3LjcsMi4xLDEwLDguNCwxLjIsMy4zLDEuNCwxMC41LTMuNiwxNC4yWk02MzAuOSw1NjljLTEuMS0xLjgtNi42LTUuOS0xMS4xLTkuOS00LjktNC4zLTkuNS0xMS41LTkuNi0yMC44LS4xLTcuNCwyLjQtMTUuNSw5LTIwLjUsNC4xLTIuOSwxMy01LjgsMjAuMy0zLjksMTIsMywxOC4yLDE1LjcsMTkuNywxNy44LDAsMCwxLjUsMS45LjYsMS4zLS45LS42LTkuNS0uNS0xMi45LjYtNC45LDEuNC0xMC4xLDUuMy0xMi42LDkuMS03LjMsMTEuMS00LjIsMjMuNy0zLjMsMjYuM1pNNzA5LjQsNTczLjljLTIuMywxLjMtNi4xLDEuMi02LjEsMS4yLDAsMCw0LjUtMi43LDIuNS03LjEtMi00LjMtNy4zLTUuNy05LjgtNS43cy01LjYsMS40LTcuMSwzYy0yLjEsMi4yLTMuOCw2LjUtNS44LDguNS0yLjksMi44LTYuOSwzLTYuOSwzaDBzLTQtLjItNi45LTNjLTIuMS0xLjktMy43LTYuMy01LjktOC41LTEuNi0xLjYtNC43LTMtNy4xLTNzLTcuNywxLjQtOS43LDUuN2MtMiw0LjQsMi41LDcuMSwyLjUsNy4xLDAsMC0zLjguMS02LjEtMS4yLTQuMy0yLjQtNy4xLTkuOC03LjEtMTQuNiwwLTkuNSw0LjktMTUuMiw2LjQtMTYuOCwyLjEtMi4xLDcuNC01LjgsMTQuOS01LjUsMy40LjEsNi44LDEuMywxMC41LDQuNSwzLjQsMi45LDguNywxMi43LDguNywxMi43LDAsMCw1LjItOS43LDguNi0xMi43LDMuNy0zLjIsNy4xLTQuMywxMC41LTQuNSw3LjQtLjMsMTIuOCwzLjQsMTQuOCw1LjUsMS42LDEuNSw2LjUsNy4yLDYuNSwxNi44cy0yLjksMTIuMS03LjEsMTQuNlpNNzMyLjMsNTU5LjFjLTQuNSwzLjktMTAsOC0xMS4xLDkuOC45LTIuNywzLjktMTUuMi0zLjMtMjYuMy0yLjUtMy44LTcuNy03LjctMTIuNi05LjEtMy41LTEuMS0xMi0xLjItMTIuOS0uNi0xLC42LjYtMS4zLjYtMS4zLDEuNS0yLjEsNy44LTE0LjgsMTkuNy0xNy44LDcuMy0xLjksMTYuMiwxLDIwLjMsMy45LDYuNiw0LjksOS4xLDEzLjEsOSwyMC41LS4yLDkuMy00LjcsMTYuNC05LjYsMjAuOFpNNzY5LjYsNDk4LjdjLS4zLDkuNi02LjIsMTYuOS05LjksMTguNS00LjEsMS44LTkuNywxLjEtMTIuNy0xLjItNS0zLjgtNC44LTEwLjktMy42LTE0LjIsMi4zLTYuMyw2LjYtOC4zLDEwLTguNCw0LjMtLjIsNiwzLDYuOCw0LjMuOSwxLjMsMS0yLjgtMS4xLTUuNi0xLjQtMS44LTQuMS0zLjMtOC4zLTIuOC00LjkuNS04LjQsNC44LTEwLDguOS0uNywxLjktMi4xLDcuNy00LjEsOS43LTIsMi01LjYsMi43LTguNCwyLjEtOS4xLTItMTYuMi0uOC0xOS4xLS4xLTMsLjctMTIsNy0xMi42LDguNi0uNSwxLjYtLjMtNy43LDEuMi0xMC43LDMuMS02LjQsOC4zLTkuMywxMS40LTE0LDMuMS00LjcsNS4xLTguMSw3LTE0LDEuNi01LjIsNy4zLTExLjcsMTMtMTQsNi4xLTIuNCwxNy45LTMuNSwyNy44LDMuMyw4LjYsNS44LDEyLjksMTkuOCwxMi41LDI5LjVaTTc3MS41LDQ2NS40Yy03LDMtMTEuOC0xLjEtMTUuNi01LjctMy44LTQuNi00LjgtMTUuNi01LjgtMTcuOS00LjEtOS4zLTEwLjEtOS42LTEzLjgtOS40LTguMy4zLTExLjIsMy45LTEzLjMsNy4xLTEuMiwyLTIuNiw2LjItMyw3LjMuNS0xLjEsMy00LDUuMi01LjIsMy0xLjYsMTAuNi01LjIsMTcuNy41LDMuNiwyLjksNy4yLDEyLjYuNSwxNS45LTUuOCwyLjgtMTIuMywyLjEtMTYuOCw0LjEtOC4xLDMuNi0xMC40LDkuOS0xMC44LDEwLjksMCwwLS4zLTcuNi0uNi05LjctLjgtNy4xLTQtMTUuMS01LjMtMjIuMS0xLTUuNC0xLjQtMTIuMy42LTE3LjYsMS4yLTMuMywzLjQtOS40LDExLjgtMTMuNCwxMi01LjcsMjAuNC0zLjIsMjUuMS0xLjEsMTMuMSw1LjgsMTUsMjQuMSwxNS4xLDI2LjkuMywxMS41LDEuNCwxNS43LDIuOCwxOS41LDEuNSwzLjksNi45LDkuNyw2LjIsMTBaIi8+CiAgPC9nPgogIDxnPgogICAgPGc+CiAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTI2OS42LDcwOC4ybC03LjEsNy43YzIuOSwzLjgsMzgsNDUuNiw1My4zLDU3LjdoLTIyLjRjLTEuMS00LjItMi4yLTcuOC0xMy4zLTIwLjFsLTIzLjYtMjUuOC05LjUtOS45djI1LjdjMCwxMC4yLjEsMjAuOSwzLjksMzAuMmgtMTguNWMxLjQtNS4zLDMuNS0xMi43LDMuNS0yNi43di01MC42YzAtMTQuNC0xLjUtMjEuMS0zLjUtMjcuOGgxNy4zYy0xLjQsNS4yLTIuOCwxMC4zLTIuOCwyNC4xdjIzLjNsMzMuOS0zNS44YzMuMy0zLjIsNS4zLTUuMiw4LjktMTEuNmgxOS43Yy04LjEsNy0xMC40LDkuNC0xNC4zLDEzLjMiLz4KICAgICAgPHBhdGggY2xhc3M9ImNscy0zIiBkPSJNNDA2LjksNzI0LjNsLTEzLjctMzMuOC0xNS43LDMyLjdNNDIxLjQsNzMwLjNjMi44LDcuMSwxMS42LDI2LjgsMTQuMiwzMS4zLDEsMS43LDIuNyw0LjYsOCwxMmgtMjMuM2MxLTQuMSwxLTUuNSwxLTYuMSwwLTcuNC0yLjUtMTMuNi00LjMtMThsLTYuMy0xNS4yYy0xMi43LS40LTIwLjgtLjYtMzcuNi0uN2wtNS45LDExLjljLTcuOCwxNS44LTkuNSwyMS4yLTEwLDI4LjNoLTE5LjZjMTIuOS0xNy4zLDEzLjMtMTgsMjguNC00N2wyOS41LTU5LDI2LDYyLjZaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTUwMS41LDcyNC41YzguNS0xLjgsMTkuNy00LjgsMjQuMy05LjQsMi4xLTIuMiw1LjUtNy43LDUuNS0xMy4zcy0zLTE1LjItMTAuNi0yMC40Yy03LjEtNC44LTE0LjMtNS0xOC45LTUuMi0uMSwzLjktLjYsOS40LS42LDIyLjJNNDg5LjgsNjkwLjljLS4yLTExLjUtLjYtMTIuNi00LTIyLjRoMjYuN2M3LjUsMCwxOS4yLDYuNiwyMy45LDExLjgsMy45LDQuMiw3LjMsMTAuMyw3LjMsMTguMywwLDE0LjUtOC43LDIwLjYtMTYuMywyNWwtOC40LDQuOWM5LjIsMTIuNywxNi40LDIyLjMsMzguMiw0NS4xaC0xMi42Yy04LjgtNi44LTE2LjUtMTMuOS0yNC45LTI0LjhsLTE4LTIzLjJ2MTYuNGMwLDEwLjUuNywyMi45LDMuOSwzMS42aC0xOC45YzMuNS05LjYsMy41LTEwLjIsMy44LTMxLjFsLS42LTUxLjZaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTYxOSw3NTQuNGMuMSw1LjYuNiw4LjksNCwxOS4zaC0xOS45YzMuOC0xMC42LDQuMy0xMi45LDQuMy0yMS44di02MC4xYzAtMTIuMi0uNy0xNC41LTQuMi0yMy4yaDE5LjdjLTMuMiw3LTQuMiw5LjUtNC4yLDE5LjYiLz4KICAgICAgPHBhdGggY2xhc3M9ImNscy0zIiBkPSJNNzM4LjQsNzE5LjJsMzIuNC0zNi42YzcuMy04LjIsOC40LTEwLjYsMTAuMS0xNGgxNS40Yy0xLjcsMi02LjgsOC4zLTcuMSw5LjYtLjcsMy41LS40LDIyLjItLjMsMjguM2wuNyw1MC4zYzAsMy41LjMsOCw0LjksMTYuOWgtMjAuNGMxLjYtMy41LDQtOS41LDQtMTMuNGwtLjgtNjguNS0zNC44LDM5Yy0xLjcsMS44LTIuMSwyLjItMy43LDQuNi00LjgtNS42LTkuNS0xMS41LTE0LjUtMTdsLTE4LjQtMjAuNmMtMi43LTMuMS0zLjItMy44LTYuNy03bC0uMyw1MC42Yy0uMSwyMS41LDIsMjYuMyw0LjgsMzIuM2gtMjAuM2MzLjEtOC4zLDQuNy0xMi43LDQuNy0yNy4zbC4zLTUzLjNjMC03LjUuMS0xMS4zLTEuMS0xMy0uNy0uOS04LjQtOS41LTEwLjMtMTEuNmgxOS44YzEuNiwzLjQsMy44LDguNCwxMiwxNy42Ii8+CiAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTg2MS40LDY4OS4xYy0uMi0xMC41LTEuMy0xNC00LjMtMjAuNmgyMC43Yy0zLjEsNi43LTQuOCwxMC4zLTQuNiwyNC41djQzLjVjMCw1LjktLjMsMjQuOS0uNiwyOC45LS43LDEwLjctMi4xLDE5LTE3LjEsMzAuOGwtMTIuMi45YzExLjYtOS43LDE4LjYtMTUuOCwxOC41LTUzLjgiLz4KICAgICAgPHBhdGggY2xhc3M9ImNscy0zIiBkPSJNOTg3LjksNjgyLjdjLTYtMi4xLTE1LjQtNS4yLTM0LjctNS44bC4zLDguOHYzMC42aDE5LjFsMTQuNy4zLTguMSwxMy44Yy0xMC4zLTQtMTMuMy00LjYtMjUuNC01LjNsLS43LDMxYy0uMSw1LjMtLjEsNiwuNCw4LjgsMjIuNS0uNiwzMS43LTIuNCw0Ny40LTkuNWwtOS42LDE4LjFoLTU0LjdjMy41LTcuNyw1LjQtMTIsNS40LTI0LjN2LTU3LjZjMC03LjQtMS4zLTE2LjQtNC4zLTIzLjJoNTcuNyIvPgogICAgICA8cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik0xMTA0LjEsNjgyLjdjLTYtMi4xLTE1LjQtNS4yLTM0LjYtNS44bC4yLDguOHYzMC42aDE5LjJsMTQuNy4zLTguMSwxMy44Yy0xMC40LTQtMTMuMy00LjYtMjUuNS01LjNsLS43LDMxYy0uMiw1LjMtLjIsNiwuNCw4LjgsMjIuNS0uNiwzMS44LTIuNCw0Ny40LTkuNWwtOS42LDE4LjFoLTU0LjdjMy41LTcuNyw1LjUtMTIsNS41LTI0LjN2LTU3LjZjMC03LjQtMS4zLTE2LjQtNC40LTIzLjJoNTcuNyIvPgogICAgPC9nPgogICAgPGc+CiAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTkzMCw2MDMuOHYtMzEuOWgyMi44djQuNmgtMTcuM3Y4LjloMTIuMXY0LjVoLTEyLjF2OS4yaDE3LjV2NC42aC0yM1oiLz4KICAgICAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNOTY5LjksNjA0LjNjLTIuNSwwLTQuOC0uNC03LTEuMy0yLjItLjgtNC4zLTIuMS02LjQtMy45bDMtNC4xYzIuMSwxLjcsMy45LDIuOSw1LjUsMy42LDEuNi43LDMuMywxLDUuMiwxczIuNy0uMiwzLjctLjZjMS4xLS40LDEuOS0xLDIuNS0xLjhzLjktMS42LjktMi42LS40LTIuMy0xLjMtM2MtLjktLjctMi40LTEuMi00LjUtMS42bC01LjktMWMtMi44LS41LTQuOC0xLjQtNi4xLTIuOC0xLjMtMS40LTItMy4xLTItNS4zcy41LTMuNiwxLjQtNS4xYzEtMS40LDIuMy0yLjUsNC4xLTMuMywxLjctLjgsMy44LTEuMiw2LjItMS4yczQuNy4zLDYuOSwxYzIuMi43LDQuMiwxLjcsNS45LDMuMWwtMi44LDQuMWMtMS42LTEuMi0zLjMtMi4yLTUtMi44LTEuNy0uNi0zLjQtLjktNS4yLS45cy0yLjQuMi0zLjMuNmMtMSwuNC0xLjcuOS0yLjIsMS42LS41LjctLjgsMS41LS44LDIuNHMuNCwyLDEuMiwyLjZjLjguNiwyLDEuMSwzLjgsMS40bDUuNywxYzMuMi41LDUuNiwxLjUsNy4yLDIuOSwxLjUsMS40LDIuMywzLjQsMi4zLDUuOHMtLjUsMy43LTEuNiw1LjJjLTEuMSwxLjUtMi42LDIuNy00LjUsMy42LTEuOS44LTQuMSwxLjMtNi43LDEuM1oiLz4KICAgICAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNOTk1LjUsNjAzLjh2LTI3LjJoLTEwLjd2LTQuN2gyNi44djQuN2gtMTAuN3YyNy4yaC01LjVaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTEwMzAuMyw2MDMuOHYtMjYuNmwtNS42LDIuNHYtNC40bDcuNS0zLjJoMy4xdjMxLjloLTVaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTEwNTIuOCw2MDQuM2MtMi4zLDAtNC4zLS40LTYuMS0xLjItMS44LS44LTMuMi0xLjktNC4yLTMuMy0xLTEuNC0xLjUtMy0xLjUtNC44cy4zLTIuMy45LTMuNGMuNi0xLDEuNC0yLDIuNC0yLjcsMS0uOCwyLjItMS4zLDMuNi0xLjctMS43LS42LTMtMS41LTQuMS0yLjgtMS4xLTEuMy0xLjYtMi43LTEuNi00LjNzLjUtMy4xLDEuNC00LjRjLjktMS4zLDIuMi0yLjQsMy44LTMuMSwxLjYtLjgsMy41LTEuMSw1LjUtMS4xczMuOS40LDUuNSwxLjFjMS42LjgsMi45LDEuOCwzLjgsMy4xLjksMS4zLDEuNCwyLjgsMS40LDQuNHMtLjUsMy4xLTEuNiw0LjNjLTEuMSwxLjMtMi40LDIuMi00LjEsMi44LDIsLjUsMy43LDEuNSw0LjksMi45LDEuMywxLjQsMS45LDMsMS45LDQuOXMtLjUsMy40LTEuNSw0LjhjLTEsMS40LTIuNCwyLjUtNC4yLDMuMy0xLjguOC0zLjgsMS4yLTYuMiwxLjJaTTEwNTIuOCw2MDAuMmMxLjMsMCwyLjUtLjIsMy41LS43LDEtLjUsMS44LTEuMSwyLjQtMiwuNi0uOC45LTEuOC45LTIuOHMtLjMtMi0uOS0yLjhjLS42LS44LTEuNC0xLjUtMi40LTItMS0uNS0yLjItLjctMy41LS43cy0yLjUuMi0zLjUuN2MtMSwuNS0xLjgsMS4xLTIuNCwyLS42LjgtLjksMS44LS45LDIuOHMuMywyLC45LDIuOGMuNi44LDEuNCwxLjUsMi40LDIsMSwuNSwyLjIuNywzLjUuN1pNMTA1Mi44LDU4NS40YzEuMSwwLDIuMS0uMiwzLS43LjktLjQsMS42LTEsMi4xLTEuOC41LS43LjgtMS42LjgtMi41cy0uMy0xLjgtLjgtMi41Yy0uNS0uNy0xLjItMS4zLTIuMS0xLjhzLTEuOS0uNi0zLS42LTIuMS4yLTMsLjYtMS42LDEtMi4xLDEuOGMtLjUuNy0uOCwxLjYtLjgsMi41cy4zLDEuOC44LDIuNSwxLjIsMS4zLDIuMSwxLjhjLjkuNCwxLjkuNywzLC43WiIvPgogICAgICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0xMDY5LjEsNjAzLjh2LTMuNmwxMy4xLTEzLjdjLjgtLjgsMS40LTEuNiwxLjgtMi4yLjUtLjcuOC0xLjMsMS0xLjkuMi0uNi4zLTEuMy4zLTIsMC0xLjMtLjUtMi41LTEuNi0zLjMtMS4xLS45LTIuNS0xLjMtNC4yLTEuM3MtMi44LjMtNC4xLjljLTEuMy42LTIuNywxLjYtNC4yLDNsLTIuOC0zLjRjMS43LTEuNiwzLjUtMi44LDUuNC0zLjYsMS45LS44LDMuOC0xLjIsNS44LTEuMnMzLjkuNCw1LjUsMS4xYzEuNi43LDIuOCwxLjgsMy43LDMuMS45LDEuMywxLjMsMi44LDEuMyw0LjZzLS4xLDItLjQsMi45Yy0uMy45LS43LDEuOC0xLjQsMi44LS43LDEtMS42LDItMi43LDMuMmwtMTAuMiwxMC41aDE1LjNjMCwwLDAsNC4yLDAsNC4yaC0yMS42WiIvPgogICAgICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0xMTA1LjYsNjA0LjNjLTQuMywwLTgtMS40LTExLjItNC4zbDMtMy40YzEuNCwxLjIsMi43LDIuMSw0LDIuNiwxLjMuNSwyLjguOCw0LjQuOHMyLjYtLjMsMy42LS44YzEtLjUsMS44LTEuMywyLjQtMi4yLjYtMSwuOC0yLC44LTMuMywwLTEuOC0uNi0zLjItMS45LTQuMy0xLjMtMS4xLTIuOS0xLjctNS0xLjdzLTIuMS4xLTMuMS40Yy0xLC4zLTIuMS43LTMuMiwxLjNsLTMuNS0xLC43LTE2LjVoMTkuNHY0LjNoLTE1bC0uNSw5LjJjMS4yLS42LDIuMy0xLDMuMy0xLjIsMS4xLS4yLDIuMS0uMywzLjItLjMsMi4xLDAsNCwuNCw1LjYsMS4yLDEuNi44LDIuOCwxLjksMy43LDMuNC45LDEuNSwxLjMsMy4xLDEuMyw1LjFzLS41LDQtMS41LDUuNmMtMSwxLjYtMi40LDIuOS00LjIsMy44LTEuOC45LTMuOSwxLjQtNi4zLDEuNFoiLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPg==" alt="Karimjee — Est 1825"/></div>
+    <div class="login-title">AI&nbsp;TOOL&nbsp;VETTING&nbsp;&amp;&nbsp;APPROVAL</div>
+    <p class="login-sub" id="loginSub">Sign in with your Karimjee company email to request or review AI tools.</p>
+    <div id="loginMsg"></div>
+    <div class="field" id="nameField" style="display:none">
+      <label>Full name</label>
+      <input id="f_name" placeholder="e.g. Jane Mwak] " autocomplete="name"/>
+    </div>
+    <div class="field">
+      <label>Company email</label>
+      <input id="f_email" type="email" placeholder="firstname.lastname@karimjee.com" autocomplete="username"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="f_pass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="btn-primary" style="width:100%" id="loginBtn">Sign In</button>
+    <div class="toggle-link" id="toggleWrap">
+      New employee? <a id="toSignup">Create an account</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+  <header class="bar">
+    <div class="bar-logo"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMzUwIDEwODAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICNmZmY7CiAgICAgIH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxnPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNDE1LjgsNTM5LjZsNi44LTcuMywyNC4yLTI1YzMuNy0zLjcsNS44LTYsMTMuNS0xMi42aC0xOC43Yy0zLjQsNi4xLTUuMyw4LTguNCwxMWwtMzIsMzMuOXYtMjIuMWMwLTEzLDEuMy0xNy45LDIuNi0yMi44aC0xNi40YzEuOSw2LjQsMy4zLDEyLjcsMy4zLDI2LjN2NDcuOWMwLDEzLjItMiwyMC4yLTMuMywyNS4yaDE3LjVjLTMuNi04LjctMy43LTE4LjktMy43LTI4LjV2LTI0LjRsOSw5LjQsMjIuNCwyNC41YzEwLjUsMTEuNiwxMS41LDE1LjEsMTIuNiwxOWgyMS4yYy0xNC40LTExLjUtNDcuNy01MS4xLTUwLjQtNTQuNloiLz4KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTU2Ni4zLDU1My4zbC0yNC42LTU5LjMtMjcuOSw1NS44Yy0xNC4zLDI3LjQtMTQuNywyOC4xLTI2LjksNDQuNWgxOC41Yy41LTYuNiwyLjEtMTEuOCw5LjUtMjYuN2w1LjYtMTEuMmMxNS45LjEsMjMuNi4zLDM1LjYuN2w2LDE0LjRjMS43LDQuMiw0LjEsMTAsNC4xLDE3LjFzMCwxLjktLjksNS44aDIyLjFjLTUtNy02LjYtOS44LTcuNi0xMS40LTIuNS00LjItMTAuOC0yMi45LTEzLjUtMjkuNlpNNTI0LjcsNTQ2LjVsMTQuOC0zMSwxMywzMi0yNy44LTEuMVoiLz4KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTY2Ni41LDU0Ni45YzcuMy00LjIsMTUuNS05LjksMTUuNS0yMy43cy0zLjItMTMuNC02LjktMTcuM2MtNC41LTQuOS0xNS41LTExLjEtMjIuNi0xMS4xaC0yNS4zYzMuMyw5LjMsMy43LDEwLjMsMy44LDIxLjJsLjUsNDguOWMtLjMsMTkuOC0uMywyMC40LTMuNiwyOS41aDE3LjljLTMtOC4yLTMuNy0yMC0zLjctMjkuOXYtMTUuNWwxNy4xLDIyYzcuOSwxMC4yLDE1LjIsMTcsMjMuNiwyMy40aDExLjljLTIwLjYtMjEuNi0yNy40LTMwLjctMzYuMS00Mi43bDcuOS00LjdaTTY0MS45LDUyMy4xYzAtMTIuMi40LTE3LjMuNS0yMSw0LjQuMSwxMS4xLjQsMTcuOSw0LjksNy4zLDQuOSwxMC4xLDEyLjgsMTAuMSwxOS4zcy0zLjIsMTAuNC01LjIsMTIuNWMtNC40LDQuNC0xNC45LDcuMS0yMyw4LjlsLS4zLTI0LjZaIi8+CiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik03MzguNCw0OTQuOGMzLjMsOC4yLDQsMTAuNSw0LDIydjU2LjljMCw4LjUtLjUsMTAuNi00LjEsMjAuN2gxOC44Yy0zLjMtOS44LTMuNy0xMy0zLjgtMTguM3YtNjIuN2MtLjEtOS42LjgtMTEuOSwzLjgtMTguNmgtMTguN1oiLz4KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTkyMS4xLDQ5NC44aC0xNC42Yy0xLjYsMy4yLTIuNyw1LjUtOS42LDEzLjNsLTMwLjcsMzQuNy0yOC4yLTMxLjJjLTcuOC04LjctOS45LTEzLjUtMTEuNC0xNi43aC0xOC44YzEuOSwyLDkuMSwxMC4xLDkuOCwxMSwxLjIsMS42LDEsNS4yLDEsMTIuM2wtLjMsNTAuNGMwLDEzLjgtMS42LDE4LTQuNSwyNS44aDE5LjJjLTIuNi01LjctNC42LTEwLjItNC41LTMwLjZsLjMtNDcuOWMzLjMsMywzLjksMy43LDYuNCw2LjZsMTcuNSwxOS41YzQuNyw1LjMsOS4zLDEwLjksMTMuOCwxNi4xLDEuNi0yLjIsMi0yLjYsMy41LTQuNGwzMy0zNi45LjgsNjQuOGMwLDMuNy0yLjQsOS40LTMuOCwxMi43aDE5LjNjLTQuNC04LjUtNC42LTEyLjctNC42LTE2bC0uNy00Ny42Yy0uMS01LjctLjQtMjMuNC4zLTI2LjcuMy0xLjMsNS4xLTcuMyw2LjgtOS4xWiIvPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNOTc4LjYsNDk0LjhjMi45LDYuMiw0LDkuNiw0LjEsMTkuNWwuNCw1MS4zYy4xLDM2LTYuNSw0MS43LTE3LjUsNTAuOWwxMS41LS45YzE0LjItMTEuMSwxNS41LTE4LjksMTYuMS0yOS4xLjMtMy44LjUtMjEuOC41LTI3LjR2LTQxLjJjLS4xLTEzLjQsMS41LTE2LjgsNC40LTIzLjJoLTE5LjZaIi8+CiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMDY5LjUsNTc3LjdsLjctMjkuM2MxMS41LjYsMTQuMywxLjIsMjQuMSw1bDcuNy0xMy4xLTEzLjktLjNoLTE4LjF2LTI5bC0uMy04LjNjMTguMy41LDI3LjEsMy41LDMyLjgsNS41bDcuMi0xMy40aC01NC43YzIuOSw2LjUsNC4xLDE0LjksNC4xLDIydjU0LjVjMCwxMS42LTEuOCwxNS43LTUuMiwyM2g1MS43bDkuMS0xNy4yYy0xNC44LDYuNy0yMy41LDguNC00NC44LDktLjUtMi43LS41LTMuMy0uNC04LjNaIi8+CiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMTc5LjksNTg2LjFjLS41LTIuNy0uNS0zLjMtLjQtOC4zbC43LTI5LjNjMTEuNS42LDE0LjMsMS4yLDI0LjEsNWw3LjctMTMuMS0xMy45LS4zaC0xOC4xdi0yOWwtLjItOC4zYzE4LjIuNSwyNy4xLDMuNSwzMi44LDUuNWw3LjItMTMuNGgtNTQuN2MyLjksNi41LDQuMSwxNC45LDQuMSwyMnY1NC41YzAsMTEuNi0xLjksMTUuNy01LjIsMjNoNTEuN2w5LjEtMTcuMmMtMTQuOCw2LjctMjMuNiw4LjQtNDQuOSw5WiIvPgogIDwvZz4KICA8Zz4KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTIxMC4yLDU4NS44czAsMCwwLDB0MCwwIi8+CiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yNDIuOCw2NDkuOWMwLC4xLS4yLjMtLjIuNCwwLC4yLDAsMCwuMi0uNFoiLz4KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTIwOC45LDU5Ni43czAsMCwwLDBjMCwwLDAsMCwwLDBoLS4yWiIvPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTc1LjQsNjUwLjNjMCwwLS4xLS4yLS4yLS4zLjEuNC4yLjUuMi4zWiIvPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMjY4LjQsNDg3LjNjLTIzLjUtNDAuOS01OS4zLTUxLjMtNTkuMy01MS4zLDAsMC0zNS45LDEwLjQtNTkuNCw1MS4zLTIzLjUsNDEtMjUuMyw3MC40LTI0LjgsOTEuMS40LDIwLjcsNy40LDU4LDM3LjcsODAuNSwxNC4zLDEwLjYsMzEuNywxNS41LDQ2LjUsMTUuNXMzMi4yLTQuOSw0Ni41LTE1LjVjMzAuMy0yMi41LDM3LjMtNTkuOCwzNy43LTgwLjUuNS0yMC43LTEuNC01MC4yLTI0LjgtOTEuMVpNMjQ5LjcsNDk4LjVjMTIuNi0uMiwxNS4xLDkuOSwxNS4yLDEyLjkuMiw4LjUtOCwxMi45LTExLjMsMTMuMy02LjcuOS0xMS42LDIuMy0xNS45LDUuNi00LjIsMy4zLTcsMTAuMi03LjUsMTQuNi0uMywyLjgtLjYsNy4zLjksMTIuMywxLjIsMy44LDQuOCwxMi40LDQuNSwyMi40LS4zLDcuOS01LDE0LjQtOS40LDE4LTQuOCwzLjktNC4zLDcuMS00LjQsNi42LTEuNy02LjktOS43LTkuOS05LjctOS45LDAsMCwyLjEtLjEsMy41LS44LDItLjksNS4xLTMuMSw3LjMtNi44LDIuMy00LDMuMy04LjcsMy40LTEzLC4yLTkuNC0zLjYtMTcuNi01LjktMjQtMi4zLTYuNC0zLjItMTUuNC0zLjItMjAuNXMzLjItMTYuNCwxMS0yMi41YzguOC03LDE3LjktOC4yLDIxLjQtOC4zWk0yMjEsNjE0LjRjLS4yLDYuNS0zLjMsMTAuNS01LjUsMTIuMy00LjksNC4yLTYuMyw4LjEtNi41LDguMXMtMS4zLTMuNy02LjUtOC4xYy0yLjEtMS44LTUuMi01LjgtNS40LTEyLjMtLjQtMTIuOSwxMS0xNy40LDExLjktMTcuNywxLC40LDEyLjQsNC44LDExLjksMTcuN1pNMTgzLjIsNDgyLjhjMS41LTEuNSw3LjMtMywxMi4yLS41LDIuOCwxLjQsNSw0LjksNS43LDYuMiwxLjcsMy4zLDEuNCw3LjIsMS43LDcsLjMtLjIsMS0zLjIuOS00LjQtLjEtMi41LS43LTYuNi0zLjEtMTAuNC0xLjktMy0zLjgtNi42LTMuNy0xMy4yLjMtMTMuNywxMi4xLTE3LjYsMTIuMS0xNy42LDAsMCwxMS44LDMuOSwxMi4xLDE3LjYuMSw2LjctMS44LDEwLjItMy43LDEzLjItMi40LDMuOC0yLjksNy45LTMuMSwxMC40LDAsMS4yLjYsNC4yLjksNC40LjQuMiwwLTMuNiwxLjctNywuNy0xLjMsMi45LTQuOCw1LjctNi4yLDUtMi41LDEwLjctMSwxMi4yLjUsMy4xLDMuMiw0LjksMTAuOS0yLjYsMTgtMS42LDEuNS04LjUsNS41LTEyLjIsMTAuNy00LjcsNi40LTYsMTUuMy01LjksMjAuMS4xLDQuOC43LDEzLjQsMywyMCwyLjUsNyw1LjUsMTIuNSw1LjUsMjAuN3MtMi4zLDE5LjMtMTMuNSwxOS4zaC0uMmMtMTEuMywwLTEzLjYtMTQuNi0xMy42LTE5LjMsMC04LjIsMy0xMy43LDUuNS0yMC43LDIuMy02LjYsMi45LTE1LjIsMy0yMCwuMS00LjgtMS4yLTEzLjgtNS44LTIwLjEtMy44LTUuMi0xMC43LTkuMS0xMi4zLTEwLjctNy41LTcuMS01LjgtMTQuNy0yLjYtMThaTTE2OC4zLDQ5OC41YzMuNSwwLDEyLjYsMS4zLDIxLjQsOC4zLDcuOCw2LjIsMTEsMTcuNSwxMSwyMi41cy0uOSwxNC0zLjIsMjAuNWMtMi4zLDYuNC02LjEsMTQuNi01LjksMjQsLjEsNC40LDEuMSw5LjEsMy40LDEzLDIuMSwzLjcsNS4yLDUuOSw3LjMsNi44LDEuNC42LDMuNC44LDMuNC44LDAsMC03LjksMy05LjcsOS45LDAsLjQuNS0yLjctNC4zLTYuNi00LjQtMy42LTkuMi0xMC4xLTkuNC0xOC0uMy0xMCwzLjMtMTguNiw0LjUtMjIuNCwxLjYtNS4xLDEuMy05LjYuOS0xMi4zLS41LTQuNC0zLjMtMTEuMy03LjUtMTQuNi00LjMtMy40LTkuMi00LjctMTUuOS01LjYtMy4yLS40LTExLjUtNC44LTExLjMtMTMuMywwLTMsMi41LTEzLjEsMTUuMi0xMi45Wk0xNDIuMiw1NjVjMS0yLjgsMS44LTYsMi4xLTE0LjYsMC0yLjEsMS41LTE1LjgsMTEuMy0yMC4xLDMuNS0xLjYsOS44LTMuNCwxOC43LjksNi4zLDMsNy45LDcuNiw4LjgsMTAuMSwxLjUsNCwxLjIsOS4xLjUsMTMuMi0xLDUuMi0zLjQsMTEuMi00LDE2LjUtLjIsMS42LS40LDcuMy0uNCw3LjMtLjMtLjgtMi01LjUtOC4xLTguMi0zLjQtMS41LTguMi0xLTEyLjUtMy4xLTUuMS0yLjUtMi4zLTkuOC4zLTExLjksNS4zLTQuMywxMS0xLjYsMTMuMy0uNCwxLjYuOSwzLjUsMywzLjksMy45LS4zLS44LTEuMy00LTIuMy01LjUtMS41LTIuNC0zLjctNS4xLTkuOS01LjMtMi43LS4xLTcuMiwwLTEwLjMsNy0uOCwxLjgtMS41LDEwLTQuNCwxMy40LTIuOCwzLjUtNi41LDYuNS0xMS43LDQuMy0uNi0uMiwzLjUtNC41LDQuNi03LjVaTTE1NS45LDYxMC40Yy0yLjIsMS43LTYuNCwyLjItOS41LjktMi43LTEuMi03LjEtNi42LTcuMy0xMy45LS4yLTcuMywzLTE3LjcsOS40LTIyLjEsNy41LTUuMSwxNi4yLTQuMywyMC44LTIuNSw0LjIsMS43LDguNSw2LjYsOS43LDEwLjUsMS40LDQuNCwyLjksNyw1LjIsMTAuNCwyLjQsMy41LDYuMiw1LjcsOC41LDEwLjUsMS4xLDIuMiwxLjMsOS4yLjksOC0uNC0xLjItNy4xLTUuOS05LjQtNi40LTIuMS0uNS03LjQtMS40LTE0LjMuMS0yLjEuNS00LjgtLjEtNi4zLTEuNi0xLjUtMS41LTIuNi01LjgtMy4xLTcuMy0xLjItMy4xLTMuOC02LjMtNy41LTYuNy0zLjEtLjQtNS4yLjgtNi4yLDIuMS0xLjYsMi0xLjUsNS4xLS45LDQuMi42LTEsMS45LTMuMyw1LjEtMy4yLDIuNiwwLDUuOCwxLjYsNy41LDYuMy45LDIuNSwxLjEsNy44LTIuNywxMC43Wk0xNzUuMyw2NDkuOWMtLjgtMS40LTQuOS00LjQtOC4zLTcuNC0zLjctMy4yLTcuMS04LjYtNy4yLTE1LjUsMC01LjUsMS44LTExLjYsNi43LTE1LjMsMy4xLTIuMiw5LjctNC40LDE1LjItMyw5LDIuMywxMy42LDExLjcsMTQuOCwxMy4zLDAsMCwxLjEsMS40LjQuOS0uNy0uNS03LjEtLjQtOS43LjQtMy43LDEuMS03LjYsNC05LjQsNi44LTUuNSw4LjMtMy4yLDE3LjctMi41LDE5LjdaTTIzNCw2NTMuN2MtMS43LDEtNC42LjktNC42LjksMCwwLDMuNC0yLjEsMS45LTUuMy0xLjUtMy4yLTUuNS00LjMtNy4zLTQuM3MtNC4yLDEtNS4zLDIuMmMtMS42LDEuNi0yLjgsNC45LTQuNCw2LjMtMi4yLDIuMS01LjIsMi4yLTUuMiwyLjJoMHMtMy0uMS01LjItMi4yYy0xLjYtMS41LTIuOC00LjctNC40LTYuMy0xLjItMS4yLTMuNS0yLjItNS4zLTIuMnMtNS44LDEtNy4zLDQuM2MtMS41LDMuMywxLjksNS4zLDEuOSw1LjMsMCwwLTIuOS4xLTQuNi0uOS0zLjItMS44LTUuMy03LjMtNS4zLTEwLjksMC03LjEsMy43LTExLjQsNC44LTEyLjUsMS42LTEuNiw1LjUtNC4zLDExLjEtNC4xLDIuNS4xLDUuMSwxLDcuOSwzLjMsMi41LDIuMiw2LjUsOS41LDYuNSw5LjUsMCwwLDMuOS03LjMsNi41LTkuNSwyLjgtMi40LDUuMy0zLjIsNy45LTMuMyw1LjYtLjIsOS41LDIuNiwxMS4xLDQuMSwxLjIsMS4xLDQuOCw1LjQsNC44LDEyLjVzLTIuMiw5LjEtNS4zLDEwLjlaTTI1MS4xLDY0Mi42Yy0zLjQsMi45LTcuNSw2LTguMyw3LjMuNy0yLDIuOS0xMS40LTIuNS0xOS42LTEuOS0yLjktNS43LTUuOC05LjQtNi44LTIuNi0uOC05LS45LTkuNy0uNC0uNy41LjQtLjkuNC0uOSwxLjEtMS42LDUuOC0xMSwxNC44LTEzLjMsNS40LTEuNCwxMi4xLjcsMTUuMSwzLDUsMy43LDYuOCw5LjgsNi43LDE1LjMtLjEsNy0zLjUsMTIuMy03LjIsMTUuNVpNMjc5LDU5Ny40Yy0uMiw3LjItNC42LDEyLjYtNy40LDEzLjktMy4xLDEuNC03LjIuOS05LjUtLjktMy43LTIuOC0zLjYtOC4yLTIuNy0xMC43LDEuNy00LjcsNC45LTYuMiw3LjUtNi4zLDMuMi0uMSw0LjUsMi4yLDUuMSwzLjIuNiwxLC43LTIuMS0uOC00LjItMS0xLjMtMy4xLTIuNS02LjItMi4xLTMuNy40LTYuMywzLjYtNy41LDYuNy0uNiwxLjQtMS42LDUuNy0zLjEsNy4zLTEuNSwxLjUtNC4yLDIuMS02LjMsMS42LTYuOC0xLjUtMTIuMS0uNi0xNC4zLS4xLTIuMy41LTksNS4yLTkuNCw2LjQtLjQsMS4yLS4yLTUuOC45LTgsMi4zLTQuOCw2LjItNi45LDguNS0xMC41LDIuMy0zLjUsMy44LTYuMSw1LjItMTAuNCwxLjItMy45LDUuNS04LjgsOS43LTEwLjUsNC42LTEuOCwxMy40LTIuNiwyMC44LDIuNSw2LjQsNC40LDkuNiwxNC44LDkuNCwyMi4xWk0yODAuNCw1NzIuNWMtNS4yLDIuMi04LjgtLjgtMTEuNy00LjMtMi44LTMuNS0zLjYtMTEuNy00LjMtMTMuNC0zLjEtNy03LjYtNy4yLTEwLjMtNy02LjIuMi04LjQsMi45LTEwLDUuMy0uOSwxLjUtMiw0LjctMi4yLDUuNS40LS44LDIuMi0zLDMuOS0zLjksMi4yLTEuMiw3LjktMy45LDEzLjMuNCwyLjcsMi4xLDUuNCw5LjQuMywxMS45LTQuMywyLjEtOS4yLDEuNi0xMi42LDMuMS02LjEsMi43LTcuOCw3LjQtOC4xLDguMiwwLDAtLjItNS43LS40LTcuMy0uNi01LjMtMy0xMS4zLTQtMTYuNS0uOC00LjEtMS05LjIuNS0xMy4yLjktMi41LDIuNS03LjEsOC44LTEwLjEsOS00LjIsMTUuMy0yLjQsMTguOC0uOSw5LjgsNC4zLDExLjIsMTgsMTEuMywyMC4xLjIsOC42LDEsMTEuOCwyLjEsMTQuNiwxLjEsMyw1LjIsNy4yLDQuNiw3LjVaIi8+CiAgPC9nPgogIDxnPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTA0Ny43LDQzNi4ydi0zMC4yaDIxLjZ2NC40aC0xNi40djguNGgxMS41djQuM2gtMTEuNXY4LjdoMTYuNnY0LjRoLTIxLjhaIi8+CiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMDg1LjQsNDM2LjdjLTIuNCwwLTQuNi0uNC02LjctMS4yLTIuMS0uOC00LjEtMi02LTMuN2wyLjgtMy44YzIsMS42LDMuNywyLjcsNS4yLDMuNCwxLjUuNywzLjIsMSw0LjksMXMyLjUtLjIsMy41LS42YzEtLjQsMS44LTEsMi40LTEuNy42LS43LjktMS42LjktMi41cy0uNC0yLjEtMS4yLTIuOGMtLjgtLjctMi4yLTEuMi00LjItMS41bC01LjYtMWMtMi42LS40LTQuNi0xLjMtNS44LTIuNi0xLjMtMS4zLTEuOS0zLTEuOS01cy41LTMuNCwxLjQtNC44Yy45LTEuNCwyLjItMi40LDMuOC0zLjIsMS43LS44LDMuNi0xLjEsNS45LTEuMXM0LjQuMyw2LjUsMWMyLjEuNywzLjksMS42LDUuNiwyLjlsLTIuNiwzLjljLTEuNS0xLjItMy4xLTIuMS00LjctMi42LTEuNi0uNi0zLjMtLjktNS0uOXMtMi4zLjItMy4yLjZjLS45LjQtMS42LjktMi4xLDEuNS0uNS42LS44LDEuNC0uOCwyLjJzLjQsMS45LDEuMSwyLjVjLjcuNiwxLjksMSwzLjYsMS4zbDUuNC45YzMsLjUsNS4zLDEuNCw2LjgsMi44LDEuNSwxLjQsMi4yLDMuMiwyLjIsNS41cy0uNSwzLjUtMS42LDQuOWMtMSwxLjQtMi41LDIuNi00LjMsMy40LTEuOC44LTMuOSwxLjItNi4zLDEuMloiLz4KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTExMDkuNiw0MzYuMnYtMjUuN2gtMTAuMXYtNC40aDI1LjN2NC40aC0xMC4xdjI1LjdoLTUuMloiLz4KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTExNDIuNiw0MzYuMnYtMjUuMmwtNS4zLDIuM3YtNC4ybDcuMS0zLjFoM3YzMC4yaC00LjdaIi8+CiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMTYzLjksNDM2LjdjLTIuMiwwLTQuMS0uNC01LjgtMS4xLTEuNy0uNy0zLTEuOC00LTMuMXMtMS40LTIuOS0xLjQtNC41LjMtMi4yLjgtMy4yYy41LTEsMS4zLTEuOCwyLjMtMi42LDEtLjcsMi4xLTEuMywzLjQtMS42LTEuNi0uNS0yLjktMS40LTMuOS0yLjYtMS0xLjItMS41LTIuNi0xLjUtNC4xcy40LTMsMS4zLTQuMmMuOS0xLjMsMi4xLTIuMiwzLjYtMywxLjUtLjcsMy4zLTEuMSw1LjItMS4xczMuNy40LDUuMiwxLjFjMS41LjcsMi43LDEuNywzLjYsMywuOSwxLjMsMS4zLDIuNiwxLjMsNC4ycy0uNSwyLjktMS41LDQuMWMtMSwxLjItMi4zLDIuMS0zLjksMi42LDEuOS41LDMuNSwxLjQsNC43LDIuNywxLjIsMS4zLDEuOCwyLjksMS44LDQuNnMtLjUsMy4yLTEuNCw0LjVjLS45LDEuMy0yLjMsMi40LTMuOSwzLjEtMS43LjgtMy42LDEuMS01LjgsMS4xWk0xMTYzLjksNDMyLjhjMS4zLDAsMi40LS4yLDMuMy0uNywxLS40LDEuNy0xLjEsMi4zLTEuOS42LS44LjgtMS43LjgtMi43cy0uMy0xLjktLjgtMi43Yy0uNi0uOC0xLjMtMS40LTIuMy0xLjktMS0uNC0yLjEtLjctMy4zLS43cy0yLjMuMi0zLjMuN2MtMSwuNC0xLjcsMS4xLTIuMywxLjktLjYuOC0uOCwxLjctLjgsMi43cy4zLDEuOS44LDIuN2MuNi44LDEuMywxLjQsMi4zLDEuOSwxLC40LDIuMS43LDMuMy43Wk0xMTYzLjksNDE4LjhjMSwwLDItLjIsMi44LS42czEuNS0xLDItMS43Yy41LS43LjctMS41LjctMi40cy0uMi0xLjctLjctMi40Yy0uNS0uNy0xLjItMS4zLTItMS43LS44LS40LTEuOC0uNi0yLjgtLjZzLTIsLjItMi45LjZjLS44LjQtMS41LDEtMiwxLjctLjUuNy0uNywxLjUtLjcsMi40cy4yLDEuNy43LDIuNGMuNS43LDEuMSwxLjMsMiwxLjcuOC40LDEuOC42LDIuOC42WiIvPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTE3OS4zLDQzNi4ydi0zLjRsMTIuNC0xMi45Yy43LS44LDEuMy0xLjUsMS43LTIuMS40LS42LjctMS4yLjktMS44LjItLjYuMy0xLjIuMy0xLjksMC0xLjMtLjUtMi4zLTEuNi0zLjItMS0uOC0yLjQtMS4zLTQtMS4zcy0yLjYuMy0zLjguOGMtMS4yLjYtMi41LDEuNS00LDIuOWwtMi42LTMuMmMxLjYtMS41LDMuMy0yLjYsNS4xLTMuNCwxLjgtLjgsMy42LTEuMiw1LjUtMS4yczMuNy40LDUuMiwxLjFjMS41LjcsMi42LDEuNywzLjUsMi45LjgsMS4yLDEuMywyLjcsMS4zLDQuM3MtLjEsMS45LS40LDIuOGMtLjMuOS0uNywxLjctMS4zLDIuNi0uNi45LTEuNSwxLjktMi42LDNsLTkuNiwxMGgxNC40YzAsMCwwLDQsMCw0aC0yMC40WiIvPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTIxMy44LDQzNi43Yy00LjEsMC03LjYtMS40LTEwLjYtNC4xbDIuOC0zLjJjMS4zLDEuMSwyLjYsMiwzLjgsMi41LDEuMy41LDIuNi44LDQuMS44czIuNC0uMiwzLjQtLjcsMS43LTEuMiwyLjItMi4xYy41LS45LjgtMS45LjgtMy4xLDAtMS43LS42LTMuMS0xLjgtNC4xLTEuMi0xLjEtMi44LTEuNi00LjctMS42cy0yLC4xLTIuOS40Yy0uOS4zLTIsLjctMywxLjJsLTMuMy0xLC43LTE1LjZoMTguM3Y0LjFoLTE0LjJsLS40LDguN2MxLjEtLjUsMi4xLS45LDMuMS0xLjEsMS0uMiwyLS4zLDMuMS0uMywyLDAsMy44LjQsNS4zLDEuMSwxLjUuOCwyLjcsMS44LDMuNSwzLjIuOCwxLjQsMS4yLDMsMS4yLDQuOHMtLjUsMy44LTEuNCw1LjNjLS45LDEuNS0yLjMsMi43LTQsMy42LTEuNy45LTMuNywxLjMtNiwxLjNaIi8+CiAgPC9nPgo8L3N2Zz4=" alt="Karimjee"/><span class="bar-sub">AI TOOL VETTING</span></div>
+    <div class="who">
+      <span id="whoName"></span>
+      <span class="role-chip" id="whoRole"></span>
+      <button id="logoutBtn">Sign out</button>
+    </div>
+  </header>
+  <nav class="tabs" id="tabs"></nav>
+  <main id="view"></main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ===================== CONFIG ===================== */
+const SUPABASE_URL = "https://wkjonqeezxtjbqvlzggh.supabase.co";
+const SUPABASE_KEY = "sb_publishable_CskZPpeWhj10ZX5HSXXUFg_ALZRztSS";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ===================== CONSTANTS ===================== */
+const DATA_CATS = [
+  ["public","Public data"],["internal","Internal company data"],
+  ["personal","Personal data (names, emails, IDs)"],["customer_pii","Customer / client personal data"],
+  ["employee","Employee data"],["sensitive","Sensitive (health, biometric, financial)"]
+];
+const INTEGS = [["email","Email"],["files","Files"],["databases","Databases"],["other","Other systems"]];
+const ROLE_LABEL = {employee:"Employee",it_head:"Group IT Head",legal:"Group Legal & Compliance",coo:"Group COO",admin:"Administrator"};
+const STAGE = {
+  it_review:{b:"it",t:"Awaiting IT Review"}, legal_review:{b:"leg",t:"Awaiting Legal Review"},
+  coo_review:{b:"coo",t:"Awaiting COO Decision"}, approved:{b:"ap",t:"Approved"}, rejected:{b:"rj",t:"Rejected"}
+};
+const STAGE_FOR_ROLE = {it_head:"it_review", legal:"legal_review", coo:"coo_review"};
+
+const BUSINESS_UNITS = [{"cluster": "Karimjee Group", "units": ["Group Customer Engagement & Strategic Partnership", "Group Director's Office", "Group Facility Management", "Group Finance & Accounts", "Group Human Resources", "Group Information & Technology", "Group Internal Audit & Sys. Mngt", "Group Legal & Compliance", "Group Marketing", "Group Project Management", "Group Strategy", "Group Supply Chain", "Lubricants"]}, {"cluster": "Karimjee Mobility", "units": ["Auto Inc. - Dar Kariakoo 1S Branch", "Auto Inc. - Dar Mikocheni 2S Branch", "Auto Inc. - Dar Samora 2S Branch", "Auto Inc. - Dar Tazara 2S Branch", "Auto Inc. - Dar Tegeta 2S Branch", "Auto Inc. - Dar Upanga 2S Branch", "Auto Inc. - Dar Victoria 2S Branch", "Auto Inc. Wholesale Parts", "Automark", "Group Finance & Accounts", "Mobility Support", "Motormart", "Toyota - Arusha 3S Branch", "Toyota - Bulyanhulu VMI 1S Branch", "Toyota - Dar North 2S Branch", "Toyota - Dar Pugu 3S Branch", "Toyota - GGM VMI 1S Branch", "Toyota - Kariakoo 1S Branch", "Toyota - Mbeya 2S Branch", "Toyota - North Mara VMI 1S Branch", "Toyota - Serengeti 2S Branch", "Toyota - Tanga 2S Branch", "Toyota New Vehicles", "Toyota OEM Wholesale Parts", "Yamaha"]}, {"cluster": "Karimjee Industrial", "units": ["Bearings", "Generators (KE)", "Generators (TZ)", "Generators (UG)", "Logistics", "Lubricants"]}, {"cluster": "Karimjee Finance", "units": ["Group Finance & Accounts", "Insurance", "Operating Lease (KE)", "Operating Lease (TZ)", "Operating Lease (UG)"]}, {"cluster": "Karimjee Real Estate & Hospitality", "units": ["Commercial & Residential Real Estate", "Hospitality", "Investments"]}, {"cluster": "Karimjee Family Office", "units": ["Family Heritage Estates & Archive", "Karimjee Foundation"]}, {"cluster": "Karimjee Value Chain Limited", "units": ["Toyota OEM Wholesale Parts"]}];
+function buOptions(){
+  let h='<option value="">Select your business unit…</option>';
+  BUSINESS_UNITS.forEach(g=>{
+    h+=`<optgroup label="${esc(g.cluster)}">`;
+    g.units.forEach(u=>{h+=`<option value="${esc(u)}">${esc(u)}</option>`;});
+    h+='</optgroup>';
+  });
+  return h;
+}
+let ME = null; // {id,email,full_name,role}
+
+/* ===================== HELPERS ===================== */
+const $ = s => document.querySelector(s);
+const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600);}
+function fmtDate(d){if(!d)return"—";return new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});}
+function fmtDateTime(d){if(!d)return"—";return new Date(d).toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});}
+function badge(stage){const s=STAGE[stage]||{b:"it",t:stage};return `<span class="b ${s.b}">${s.t}</span>`;}
+function riskBadge(r){return r?`<span class="b ${r}">${r.toUpperCase()} RISK</span>`:"";}
+function catLabel(c){const f=DATA_CATS.find(x=>x[0]===c);return f?f[1]:c;}
+
+function pipeline(t){
+  // steps: IT, Legal, COO
+  const order=["it_review","legal_review","coo_review"];
+  let html='<div class="pipe">';
+  const steps=[["IT","it"],["Legal","leg"],["COO","coo"]];
+  const idx=order.indexOf(t.stage);
+  steps.forEach((s,i)=>{
+    let cls="dot";
+    if(t.stage==="approved"){cls+=" done";}
+    else if(t.stage==="rejected"){
+      // mark which stage rejected
+      const rejAt = t.it_status==="declined"?0 : t.legal_status==="declined"?1 : t.coo_status==="declined"?2 : -1;
+      if(i<rejAt) cls+=" done"; else if(i===rejAt) cls+=" rej";
+    } else {
+      if(i<idx) cls+=" done"; else if(i===idx) cls+=" cur";
+    }
+    const mark = cls.includes("done")?"✓":cls.includes("rej")?"✕":(i+1);
+    html+=`<div class="step"><span class="${cls}">${mark}</span>${s[0]}</div>`;
+    if(i<2){let lc="line";if((t.stage==="approved")||(i<idx))lc+=" done";html+=`<span class="${lc}"></span>`;}
+  });
+  html+='</div>';
+  return html;
+}
+
+/* ===================== AUTH UI ===================== */
+let signupMode=false;
+$("#toSignup").onclick=()=>{
+  signupMode=!signupMode;
+  $("#nameField").style.display=signupMode?"block":"none";
+  $("#loginBtn").textContent=signupMode?"Create Account":"Sign In";
+  $("#loginSub").textContent=signupMode
+    ?"Create your account using your @karimjee.com email. Your role is assigned automatically."
+    :"Sign in with your Karimjee company email to request or review AI tools.";
+  $("#toggleWrap").innerHTML=signupMode?'Already registered? <a id="toSignup">Sign in</a>':'New employee? <a id="toSignup">Create an account</a>';
+  $("#toSignup").onclick=arguments.callee; // rebind
+  // simpler: reload binding
+  bindToggle();
+  setMsg("");
+};
+function bindToggle(){
+  const a=$("#toSignup");
+  if(a) a.onclick=()=>{
+    signupMode=!signupMode;
+    $("#nameField").style.display=signupMode?"block":"none";
+    $("#loginBtn").textContent=signupMode?"Create Account":"Sign In";
+    $("#loginSub").textContent=signupMode
+      ?"Create your account using your @karimjee.com email. Your role is assigned automatically."
+      :"Sign in with your Karimjee company email to request or review AI tools.";
+    $("#toggleWrap").innerHTML=signupMode?'Already registered? <a id="toSignup">Sign in</a>':'New employee? <a id="toSignup">Create an account</a>';
+    bindToggle();
+    setMsg("");
+  };
+}
+bindToggle();
+
+function setMsg(m,type){const el=$("#loginMsg");if(!m){el.innerHTML="";return;}el.innerHTML=`<div class="msg ${type||'err'}">${esc(m)}</div>`;}
+
+$("#loginBtn").onclick=async()=>{
+  const email=$("#f_email").value.trim().toLowerCase();
+  const pass=$("#f_pass").value;
+  if(!email||!pass){setMsg("Enter your email and password.");return;}
+  if(!email.endsWith("@karimjee.com")){setMsg("Only @karimjee.com company emails are permitted.");return;}
+  $("#loginBtn").disabled=true;$("#loginBtn").textContent="Please wait…";
+  try{
+    if(signupMode){
+      const name=$("#f_name").value.trim();
+      const {error}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name}}});
+      if(error)throw error;
+      const {error:e2}=await sb.auth.signInWithPassword({email,password:pass});
+      if(e2){setMsg("Account created. If email confirmation is enabled, confirm via email then sign in.","ok");$("#loginBtn").disabled=false;$("#loginBtn").textContent="Sign In";signupMode=false;$("#nameField").style.display="none";return;}
+    }else{
+      const {error}=await sb.auth.signInWithPassword({email,password:pass});
+      if(error)throw error;
+    }
+    await boot();
+  }catch(e){
+    setMsg(e.message||"Authentication failed.");
+    $("#loginBtn").disabled=false;$("#loginBtn").textContent=signupMode?"Create Account":"Sign In";
+  }
+};
+
+$("#logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload();};
+
+/* ===================== BOOT ===================== */
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){$("#login").classList.remove("hidden");$("#app").classList.add("hidden");return;}
+  const {data:prof,error}=await sb.from("profiles").select("*").eq("id",session.user.id).single();
+  if(error||!prof){setMsg("Profile not found. Contact IT.");await sb.auth.signOut();return;}
+  ME=prof;
+  $("#login").classList.add("hidden");$("#app").classList.remove("hidden");
+  $("#whoName").textContent=ME.full_name||ME.email;
+  $("#whoRole").textContent=ROLE_LABEL[ME.role]||ME.role;
+  buildTabs();
+}
+
+/* ===================== TABS ===================== */
+let TABS=[], current=null;
+function buildTabs(){
+  TABS=[];
+  TABS.push({id:"new",label:"New Request",roles:["employee","it_head","legal","coo","admin"]});
+  TABS.push({id:"mine",label:"My Requests",roles:["employee","it_head","legal","coo","admin"]});
+  if(["it_head","legal","coo","admin"].includes(ME.role))
+    TABS.push({id:"queue",label:"My Review Queue",roles:["it_head","legal","coo"],badge:0});
+  if(["it_head","legal","coo","admin"].includes(ME.role))
+    TABS.push({id:"registry",label:"AI Tool Registry",roles:["it_head","legal","coo","admin"]});
+  const nav=$("#tabs");nav.innerHTML="";
+  TABS.filter(t=>t.roles.includes(ME.role)).forEach(t=>{
+    const b=document.createElement("button");
+    b.textContent=t.label;b.dataset.id=t.id;
+    if(t.id==="queue")b.innerHTML=t.label+' <span class="badge" id="qbadge" style="display:none"></span>';
+    b.onclick=()=>go(t.id);
+    nav.appendChild(b);
+  });
+  go(ME.role==="employee"?"mine":(STAGE_FOR_ROLE[ME.role]?"queue":"mine"));
+  if(STAGE_FOR_ROLE[ME.role]) refreshQueueBadge();
+}
+function go(id){
+  current=id;
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("active",b.dataset.id===id));
+  if(id==="new")renderNew();
+  else if(id==="mine")renderMine();
+  else if(id==="queue")renderQueue();
+  else if(id==="registry")renderRegistry();
+}
+
+async function refreshQueueBadge(){
+  const stage=STAGE_FOR_ROLE[ME.role];if(!stage)return;
+  const {count}=await sb.from("request_tools").select("id",{count:"exact",head:true}).eq("stage",stage);
+  const el=$("#qbadge");if(el){if(count>0){el.style.display="inline-block";el.textContent=count;}else{el.style.display="none";}}
+}
+
+/* ===================== NEW REQUEST ===================== */
+let toolCount=0;
+function renderNew(){
+  toolCount=0;
+  $("#view").innerHTML=`
+  <div class="page-head"><h2>New AI Tool Request</h2>
+    <p>Submit one or more AI tools for vetting. Each tool is routed independently through Group IT → Legal → COO.</p></div>
+  <div class="card"><div class="card-b">
+    <div class="grid2">
+      <div><label>Requester</label><input value="${esc(ME.full_name||ME.email)}" disabled></div>
+      <div><label>Business unit *</label><select id="r_bu">${buOptions()}</select></div>
+    </div>
+    <div style="margin-top:14px"><label>Overall notes (optional)</label><textarea id="r_notes" placeholder="Any context for reviewers covering the whole request…"></textarea></div>
+  </div></div>
+  <div id="tools"></div>
+  <button class="btn-ghost" id="addTool">+ Add another AI tool</button>
+  <div style="margin-top:20px;display:flex;gap:10px">
+    <button class="btn-primary" id="submitReq">Submit for Vetting</button>
+  </div>`;
+  $("#addTool").onclick=addToolBlock;
+  $("#submitReq").onclick=submitRequest;
+  addToolBlock();
+}
+function addToolBlock(){
+  toolCount++;
+  const n=toolCount;
+  const div=document.createElement("div");
+  div.className="tool-block";div.dataset.n=n;
+  div.innerHTML=`
+    ${n>1?`<button class="rm" title="Remove" onclick="this.parentElement.remove()">✕</button>`:""}
+    <div class="tool-num">AI Tool #${n}</div>
+    <div class="grid2">
+      <div><label>Tool name *</label><input class="t_name" placeholder="e.g. ChatGPT Enterprise"></div>
+      <div><label>Vendor / publisher</label><input class="t_vendor" placeholder="e.g. OpenAI"></div>
+      <div class="full"><label>Product URL</label><input class="t_url" placeholder="https://"></div>
+      <div class="full"><label>Business use case *</label><textarea class="t_use" placeholder="What problem does this solve? Why this tool?"></textarea></div>
+      <div><label>Users (team / named)</label><input class="t_users" placeholder="e.g. Finance team"></div>
+      <div><label>Expected user count</label><input class="t_count" type="number" min="0" placeholder="e.g. 12"></div>
+    </div>
+    <div style="margin-top:14px"><label>Data categories (check all that apply)</label>
+      <div class="chips t_cats">
+        ${DATA_CATS.map(c=>`<label class="chk"><input type="checkbox" value="${c[0]}" onchange="this.parentElement.classList.toggle('on',this.checked)">${c[1]}</label>`).join("")}
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:14px">
+      <div><label>Data residency</label><select class="t_res"><option value="">Select…</option><option>Tanzania</option><option>USA</option><option>EU</option><option value="Other">Other</option></select></div>
+      <div><label>Vendor trains on your data?</label><select class="t_train"><option value="">Select…</option><option value="no">No</option><option value="yes">Yes</option><option value="unknown">Unknown</option></select></div>
+      <div><label>Training opt-out available?</label><select class="t_opt"><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option><option value="na">N/A</option></select></div>
+    </div>
+    <div style="margin-top:14px"><label>Integrations (check all that apply)</label>
+      <div class="chips t_integs">
+        ${INTEGS.map(c=>`<label class="chk"><input type="checkbox" value="${c[0]}" onchange="this.parentElement.classList.toggle('on',this.checked)">${c[1]}</label>`).join("")}
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div><label>Target go-live date</label><input class="t_live" type="date"></div>
+      <div style="display:flex;align-items:flex-end"><label class="chk" style="margin-bottom:0"><input type="checkbox" class="t_dpo" onchange="this.parentElement.classList.toggle('on',this.checked)">Data Protection Officer (DPO) has been notified</label></div>
+    </div>`;
+  $("#tools").appendChild(div);
+}
+async function submitRequest(){
+  const blocks=[...document.querySelectorAll(".tool-block")];
+  const tools=[];
+  for(const b of blocks){
+    const name=b.querySelector(".t_name").value.trim();
+    const use=b.querySelector(".t_use").value.trim();
+    if(!name){toast("Each tool needs a name.");return;}
+    if(!use){toast(`Provide a business use case for "${name||'a tool'}".`);return;}
+    tools.push({
+      tool_name:name,
+      vendor:b.querySelector(".t_vendor").value.trim()||null,
+      url:b.querySelector(".t_url").value.trim()||null,
+      business_use_case:use,
+      users_desc:b.querySelector(".t_users").value.trim()||null,
+      expected_count:b.querySelector(".t_count").value?parseInt(b.querySelector(".t_count").value):null,
+      data_categories:[...b.querySelectorAll(".t_cats input:checked")].map(i=>i.value),
+      data_residency:b.querySelector(".t_res").value||null,
+      model_training:b.querySelector(".t_train").value||null,
+      training_opt_out:b.querySelector(".t_opt").value||null,
+      integrations:[...b.querySelectorAll(".t_integs input:checked")].map(i=>i.value),
+      go_live_date:b.querySelector(".t_live").value||null,
+      dpo_aware:b.querySelector(".t_dpo").checked
+    });
+  }
+  if(!$("#r_bu").value){toast("Please select your business unit.");return;}
+  $("#submitReq").disabled=true;$("#submitReq").textContent="Submitting…";
+  const {data:req,error}=await sb.from("requests").insert({
+    requester_id:ME.id,requester_email:ME.email,requester_name:ME.full_name,
+    business_unit:$("#r_bu").value.trim()||null,notes:$("#r_notes").value.trim()||null
+  }).select().single();
+  if(error){toast("Error: "+error.message);$("#submitReq").disabled=false;$("#submitReq").textContent="Submit for Vetting";return;}
+  const rows=tools.map(t=>({...t,request_id:req.id}));
+  const {data:inserted,error:e2}=await sb.from("request_tools").insert(rows).select("id");
+  if(e2){toast("Error saving tools: "+e2.message);$("#submitReq").disabled=false;$("#submitReq").textContent="Submit for Vetting";return;}
+  // audit: submitted
+  await sb.from("tool_audit").insert(inserted.map(r=>({tool_id:r.id,request_id:req.id,actor_email:ME.email,actor_role:ME.role,action:"submitted",from_stage:null,to_stage:"it_review"})));
+  try{ await sb.functions.invoke("notify-approval",{body:{request_id:req.id}}); }catch(e){ console.warn("notify failed",e); }
+  toast(`Submitted ${tools.length} tool${tools.length>1?"s":""} for vetting.`);
+  go("mine");
+}
+
+/* ===================== MY REQUESTS ===================== */
+async function renderMine(){
+  $("#view").innerHTML=`<div class="page-head"><h2>My Requests</h2><p>Track each AI tool you have submitted through the approval pipeline.</p></div><div id="mineList"></div>`;
+  const {data,error}=await sb.from("request_tools")
+    .select("*, requests!inner(requester_id,business_unit,created_at,notes)")
+    .eq("requests.requester_id",ME.id).order("created_at",{ascending:false});
+  const wrap=$("#mineList");
+  if(error){wrap.innerHTML=`<div class="empty">${esc(error.message)}</div>`;return;}
+  if(!data.length){wrap.innerHTML=`<div class="card"><div class="empty">No requests yet. Use <b>New Request</b> to submit an AI tool for vetting.</div></div>`;return;}
+  wrap.innerHTML=data.map(t=>toolCard(t,false)).join("");
+}
+
+/* ===================== REVIEW QUEUE ===================== */
+async function renderQueue(){
+  const stage=STAGE_FOR_ROLE[ME.role];
+  const title={it_review:"Group IT Review",legal_review:"Group Legal & Compliance Review",coo_review:"Group COO — Final Decision"}[stage]||"Review Queue";
+  $("#view").innerHTML=`<div class="page-head"><h2>${title}</h2><p>Approve or decline each AI tool. A reason is required to decline. Approved tools advance automatically to the next reviewer.</p></div><div id="qList"></div>`;
+  const {data,error}=await sb.from("request_tools")
+    .select("*, requests!inner(requester_name,requester_email,business_unit,created_at,notes)")
+    .eq("stage",stage).order("created_at",{ascending:true});
+  const wrap=$("#qList");
+  if(error){wrap.innerHTML=`<div class="empty">${esc(error.message)}</div>`;return;}
+  if(!data.length){wrap.innerHTML=`<div class="card"><div class="empty">🎉 Nothing awaiting your review right now.</div></div>`;return;}
+  wrap.innerHTML=data.map(t=>toolCard(t,true)).join("");
+}
+
+/* ===================== REGISTRY ===================== */
+async function renderRegistry(){
+  $("#view").innerHTML=`<div class="page-head"><h2>AI Tool Registry</h2><p>Group-wide record of every AI tool request and its decision trail.</p></div>
+    <div class="stat-row" id="stats"></div>
+    <div class="card"><div class="card-b" style="overflow-x:auto"><table id="regTable"><thead><tr>
+      <th>Tool</th><th>Requester / BU</th><th>Risk</th><th>Stage</th><th>IT</th><th>Legal</th><th>COO</th><th>Updated</th>
+    </tr></thead><tbody></tbody></table></div></div>`;
+  const {data,error}=await sb.from("request_tools")
+    .select("*, requests(requester_name,requester_email,business_unit,created_at)")
+    .order("updated_at",{ascending:false});
+  if(error){$("#regTable").outerHTML=`<div class="empty">${esc(error.message)}</div>`;return;}
+  const c={total:data.length,pending:0,approved:0,rejected:0};
+  data.forEach(t=>{if(t.final_status==="approved")c.approved++;else if(t.final_status==="rejected")c.rejected++;else c.pending++;});
+  $("#stats").innerHTML=`
+    ${stat(c.total,"Total Tools")}${stat(c.pending,"In Pipeline")}${stat(c.approved,"Approved")}${stat(c.rejected,"Rejected")}`;
+  const vd=v=>v==="approved"?'<span class="b ap">✓</span>':v==="declined"?'<span class="b rj">✕</span>':'<span class="meta">—</span>';
+  $("#regTable").querySelector("tbody").innerHTML=data.map(t=>`
+    <tr>
+      <td><b>${esc(t.tool_name)}</b><div class="meta">${esc(t.vendor||"")}</div></td>
+      <td>${esc(t.requests?.requester_name||t.requests?.requester_email||"")}<div class="meta">${esc(t.requests?.business_unit||"")}</div></td>
+      <td>${riskBadge(t.risk_tier)}</td>
+      <td>${badge(t.stage)}</td>
+      <td>${vd(t.it_status)}</td><td>${vd(t.legal_status)}</td><td>${vd(t.coo_status)}</td>
+      <td class="meta">${fmtDate(t.updated_at)}</td>
+    </tr>`).join("");
+}
+function stat(n,l){return `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`;}
+
+/* ===================== TOOL CARD ===================== */
+function toolCard(t,actionable){
+  const r=t.requests||{};
+  const decisions=[];
+  if(t.it_status!=="pending")decisions.push(noteRow("Group IT",t.it_status,t.it_reason,t.it_by,t.it_at));
+  if(t.legal_status!=="pending")decisions.push(noteRow("Group Legal",t.legal_status,t.legal_reason,t.legal_by,t.legal_at));
+  if(t.coo_status!=="pending")decisions.push(noteRow("Group COO",t.coo_status,t.coo_reason,t.coo_by,t.coo_at));
+  return `<div class="card">
+    <div class="card-h">
+      <div><h3 style="font-size:16px">${esc(t.tool_name)} ${riskBadge(t.risk_tier)}</h3>
+        <div class="meta">${esc(t.vendor||"—")}${t.url?` · <a href="${esc(t.url)}" target="_blank" rel="noopener">link</a>`:""}</div></div>
+      ${badge(t.stage)}
+    </div>
+    <div class="card-b">
+      ${pipeline(t)}
+      <div class="kv">
+        <div class="k">Requester</div><div>${esc(r.requester_name||r.requester_email||"")} ${r.business_unit?`· ${esc(r.business_unit)}`:""}</div>
+        <div class="k">Use case</div><div>${esc(t.business_use_case||"—")}</div>
+        <div class="k">Users</div><div>${esc(t.users_desc||"—")}${t.expected_count?` (${t.expected_count})`:""}</div>
+        <div class="k">Data categories</div><div>${t.data_categories?.length?t.data_categories.map(catLabel).map(esc).join(", "):"—"}</div>
+        <div class="k">Residency</div><div>${esc(t.data_residency||"—")}</div>
+        <div class="k">Vendor training</div><div>${esc(t.model_training||"—")} · opt-out: ${esc(t.training_opt_out||"—")}</div>
+        <div class="k">Integrations</div><div>${t.integrations?.length?t.integrations.map(esc).join(", "):"—"}</div>
+        <div class="k">Go-live</div><div>${fmtDate(t.go_live_date)}</div>
+        <div class="k">DPO notified</div><div>${t.dpo_aware?"Yes":"No"}</div>
+      </div>
+      ${decisions.join("")}
+      ${actionable?actionUI(t):""}
+    </div>
+  </div>`;
+}
+function noteRow(who,status,reason,by,at){
+  const ap=status==="approved";
+  return `<div class="reason-note ${ap?'ap':'rj'}">
+    <b>${who}: ${ap?'Approved':'Declined'}</b> ${by?`· ${esc(by)}`:""} ${at?`· ${fmtDateTime(at)}`:""}
+    ${reason?`<div style="margin-top:3px">${esc(reason)}</div>`:""}</div>`;
+}
+function actionUI(t){
+  return `<div class="reason-box">
+    <label>Reason / notes (required to decline, optional to approve)</label>
+    <textarea id="reason_${t.id}" placeholder="State the rationale for your decision…"></textarea>
+    <div class="row-actions">
+      <button class="btn-ok btn-sm" onclick="decide('${t.id}','approved')">✓ Approve &amp; advance</button>
+      <button class="btn-bad btn-sm" onclick="decide('${t.id}','declined')">✕ Decline</button>
+    </div></div>`;
+}
+async function decide(id,decision){
+  const reason=($("#reason_"+id)?.value||"").trim();
+  if(decision==="declined"&&!reason){toast("A reason is required to decline.");$("#reason_"+id)?.focus();return;}
+  const {error}=await sb.rpc("decide_tool",{p_tool_id:id,p_decision:decision,p_reason:reason||null});
+  if(error){toast("Error: "+error.message);return;}
+  try{ await sb.functions.invoke("notify-approval",{body:{tool_id:id}}); }catch(e){ console.warn("notify failed",e); }
+  toast(decision==="approved"?"Approved — advanced & next reviewer notified.":"Tool declined — requester notified.");
+  refreshQueueBadge();
+  renderQueue();
+}
+window.decide=decide;
+
+/* ===================== START ===================== */
+boot();
+</script>
+</body>
+</html>
