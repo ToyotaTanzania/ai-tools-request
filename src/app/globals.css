@@ -30,7 +30,7 @@
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-text), 'Segoe UI', sans-serif;
   color: var(--ink);
   background: var(--bg);
   font-size: 14.5px;
@@ -39,6 +39,7 @@ body {
 
 h1, h2, h3 {
   margin: 0;
+  font-family: var(--font-display), var(--font-text), 'Segoe UI', sans-serif;
   font-weight: 650;
   letter-spacing: -0.01em;
 }

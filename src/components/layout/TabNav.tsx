@@ -7,6 +7,8 @@ import type { Profile } from '@/lib/types'
 import { REVIEWER_ROLES } from '@/lib/constants'
 import { getQueueCount } from '@/actions/decisions'
 
+const SUPER_ADMIN_EMAIL = 'abdulaziz.raudha@karimjee.com'
+
 interface TabNavProps {
   profile: Profile
 }
@@ -15,6 +17,7 @@ export function TabNav({ profile }: TabNavProps) {
   const pathname = usePathname()
   const [queueCount, setQueueCount] = useState(0)
   const isReviewer = REVIEWER_ROLES.includes(profile.role)
+  const isSuperAdmin = profile.email?.toLowerCase() === SUPER_ADMIN_EMAIL
 
   useEffect(() => {
     if (isReviewer) {
@@ -27,6 +30,7 @@ export function TabNav({ profile }: TabNavProps) {
     { href: '/requests', label: 'My Requests', show: true },
     { href: '/queue', label: 'My Review Queue', show: isReviewer, badge: queueCount },
     { href: '/registry', label: 'AI Tool Registry', show: isReviewer },
+    { href: '/users', label: 'User Management', show: isSuperAdmin },
   ]
 
   return (
