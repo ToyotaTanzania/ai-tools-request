@@ -100,14 +100,7 @@ export function NewRequestForm() {
 
   return (
     <>
-      <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '26px 22px 60px' }}>
-        <div style={{ marginBottom: '18px' }}>
-          <h2 style={{ fontSize: '22px', color: '#1d3c6f', margin: 0 }}>New AI Tool Request</h2>
-          <p style={{ color: '#5c6678', margin: '4px 0 0', fontSize: '13.5px' }}>
-            Submit one or more AI tools for vetting and approval.
-          </p>
-        </div>
-
+      <div>
         {error && (
           <div
             style={{
@@ -115,8 +108,8 @@ export function NewRequestForm() {
               borderRadius: '8px',
               fontSize: '13px',
               margin: '6px 0 14px',
-              background: '#fbe9e8',
-              color: '#b3261e',
+              background: '#eef1f5',
+              color: '#5c6678',
             }}
           >
             {error}

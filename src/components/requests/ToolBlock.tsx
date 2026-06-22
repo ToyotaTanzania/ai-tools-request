@@ -61,8 +61,8 @@ export function ToolBlock({ index, tool, onChange, onRemove, canRemove }: ToolBl
             position: 'absolute',
             top: '10px',
             right: '10px',
-            background: '#fbe9e8',
-            color: '#b3261e',
+            background: '#eef1f5',
+            color: '#5c6678',
             width: '26px',
             height: '26px',
             borderRadius: '6px',
@@ -83,7 +83,7 @@ export function ToolBlock({ index, tool, onChange, onRemove, canRemove }: ToolBl
         style={{
           fontSize: '12px',
           fontWeight: 700,
-          color: '#c9a14a',
+          color: '#184377',
           letterSpacing: '.06em',
           textTransform: 'uppercase',
           marginBottom: '10px',
@@ -170,7 +170,7 @@ export function ToolBlock({ index, tool, onChange, onRemove, canRemove }: ToolBl
                     padding: '7px 11px',
                     fontSize: '13px',
                     cursor: 'pointer',
-                    background: on ? '#e9eef6' : '#fff',
+                    background: on ? '#e7ecf4' : '#fff',
                   }}
                 >
                   <input
@@ -246,7 +246,7 @@ export function ToolBlock({ index, tool, onChange, onRemove, canRemove }: ToolBl
                     padding: '7px 11px',
                     fontSize: '13px',
                     cursor: 'pointer',
-                    background: on ? '#e9eef6' : '#fff',
+                    background: on ? '#e7ecf4' : '#fff',
                   }}
                 >
                   <input

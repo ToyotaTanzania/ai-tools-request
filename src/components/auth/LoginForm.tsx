@@ -80,8 +80,8 @@ export function LoginForm() {
               borderRadius: '8px',
               fontSize: '13px',
               margin: '6px 0 14px',
-              background: '#fbe9e8',
-              color: '#b3261e',
+              background: '#eef1f5',
+              color: '#5c6678',
             }}
           >
             {error}

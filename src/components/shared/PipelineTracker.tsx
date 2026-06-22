@@ -54,9 +54,9 @@ export function computePipelineDots(
 
 const dotClasses: Record<DotState, string> = {
   done: 'bg-ok text-white',
-  cur: 'bg-brand text-white shadow-[0_0_0_4px_#e9eef6]',
+  cur: 'bg-emblem text-white shadow-[0_0_0_4px_#dfe6f1]',
   rej: 'bg-bad text-white',
-  default: 'bg-gray-200 text-muted',
+  default: 'bg-[#e5e9f0] text-muted',
 }
 
 export function PipelineTracker({ tool }: PipelineTrackerProps) {

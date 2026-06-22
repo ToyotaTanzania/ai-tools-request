@@ -7,22 +7,30 @@ interface BadgeProps {
   label: string
 }
 
-const variantClasses: Record<BadgeVariant, string> = {
-  it: 'bg-brand-light text-brand',
-  legal: 'bg-purple-100 text-purple-700',
-  coo: 'bg-warnbg text-warn',
-  approved: 'bg-okbg text-ok',
-  rejected: 'bg-badbg text-bad',
-  low: 'bg-okbg text-ok',
-  medium: 'bg-warnbg text-warn',
-  high: 'bg-badbg text-bad',
-  pending: 'bg-gray-100 text-gray-600',
+const variantStyles: Record<BadgeVariant, React.CSSProperties> = {
+  it:       { background: '#e7ecf4', color: '#1d3c6f' },
+  legal:    { background: '#dfe6f1', color: '#184377' },
+  coo:      { background: '#1d3c6f', color: '#fff' },
+  approved: { background: '#1d3c6f', color: '#fff' },
+  rejected: { background: '#eef1f5', color: '#5c6678', border: '1px solid #cdd3dd' },
+  low:      { background: '#eef1f5', color: '#5c6678' },
+  medium:   { background: '#dfe6f1', color: '#184377' },
+  high:     { background: '#1d3c6f', color: '#fff' },
+  pending:  { background: '#eef1f5', color: '#5c6678' },
 }
 
 export function Badge({ variant, label }: BadgeProps) {
   return (
     <span
-      className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wide ${variantClasses[variant]}`}
+      style={{
+        display: 'inline-block',
+        padding: '3px 10px',
+        borderRadius: '20px',
+        fontSize: '11.5px',
+        fontWeight: 700,
+        letterSpacing: '.02em',
+        ...variantStyles[variant],
+      }}
     >
       {label}
     </span>
@@ -33,7 +41,7 @@ export function RiskBadge({ tier }: { tier: string | null }) {
   if (!tier) return null
   const v = tier.toLowerCase() as BadgeVariant
   const label = tier.charAt(0).toUpperCase() + tier.slice(1)
-  return <Badge variant={v in variantClasses ? v : 'pending'} label={label} />
+  return <Badge variant={v in variantStyles ? v : 'pending'} label={label} />
 }
 
 export function StageBadge({ stage }: { stage: string }) {

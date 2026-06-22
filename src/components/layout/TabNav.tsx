@@ -18,7 +18,7 @@ export function TabNav({ profile }: TabNavProps) {
 
   useEffect(() => {
     if (isReviewer) {
-      getQueueCount().then(setQueueCount)
+      getQueueCount().then(setQueueCount).catch(() => {})
     }
   }, [isReviewer])
 
@@ -71,8 +71,8 @@ export function TabNav({ profile }: TabNavProps) {
               {tab.badge ? (
                 <span
                   style={{
-                    background: '#c9a14a',
-                    color: '#3a2c00',
+                    background: '#184377',
+                    color: '#fff',
                     borderRadius: '20px',
                     padding: '1px 8px',
                     fontSize: '11px',

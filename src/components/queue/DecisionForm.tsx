@@ -38,7 +38,7 @@ export function DecisionForm({ toolId, onDecision }: DecisionFormProps) {
   if (decided) {
     return (
       <>
-        <div style={{ color: '#1f7a44', fontSize: '13px', fontWeight: 600 }}>Decision recorded.</div>
+        <div style={{ color: '#1d3c6f', fontSize: '13px', fontWeight: 600 }}>Decision recorded.</div>
         {toast && <Toast message={toast} onDismiss={() => setToast('')} />}
       </>
     )
@@ -54,8 +54,8 @@ export function DecisionForm({ toolId, onDecision }: DecisionFormProps) {
               borderRadius: '6px',
               fontSize: '12.5px',
               marginBottom: '8px',
-              background: '#fbe9e8',
-              color: '#b3261e',
+              background: '#eef1f5',
+              color: '#5c6678',
             }}
           >
             {error}
@@ -99,7 +99,7 @@ export function DecisionForm({ toolId, onDecision }: DecisionFormProps) {
             onClick={() => decide('approve')}
             disabled={isPending}
             style={{
-              background: '#1f7a44',
+              background: '#1d3c6f',
               color: '#fff',
               padding: '8px 14px',
               border: 'none',
@@ -117,7 +117,7 @@ export function DecisionForm({ toolId, onDecision }: DecisionFormProps) {
             onClick={() => decide('decline')}
             disabled={isPending}
             style={{
-              background: '#b3261e',
+              background: '#5c6678',
               color: '#fff',
               padding: '8px 14px',
               border: 'none',

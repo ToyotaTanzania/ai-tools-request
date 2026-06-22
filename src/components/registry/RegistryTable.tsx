@@ -8,7 +8,7 @@ export async function RegistryTable() {
 
   if (error) {
     return (
-      <div style={{ textAlign: 'center', color: '#b3261e', padding: '40px 20px' }}>
+      <div style={{ textAlign: 'center', color: '#5c6678', padding: '40px 20px' }}>
         Error loading registry: {error}
       </div>
     )

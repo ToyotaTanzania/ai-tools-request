@@ -82,7 +82,7 @@ export function ToolCard({ tool, children }: ToolCardProps) {
       <div className="p-4">
         <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm mb-3">
           {req.requester_name && (
-            <KV k="Requested by" v={`${req.requester_name} (${req.requester_email})`} />
+            <KV k="Requested by" v={req.requester_email ? `${req.requester_name} (${req.requester_email})` : req.requester_name ?? ''} />
           )}
           {req.business_unit && <KV k="Business unit" v={req.business_unit} />}
           {req.created_at && <KV k="Submitted" v={fmtDate(req.created_at)} />}
