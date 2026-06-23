@@ -84,7 +84,7 @@ export function LoginForm() {
               color: '#5c6678',
             }}
           >
-            {error}
+            {error && error.toLowerCase().includes('not confirmed') ? 'Please confirm your email address by clicking the link in the email we sent you.' : error}
           </div>
         )}
 
