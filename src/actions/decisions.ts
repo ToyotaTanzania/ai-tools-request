@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { STAGE_FOR_ROLE, REVIEWER_ROLES } from '@/lib/constants'
+import { notifyDecision } from '@/lib/notify'
 import type { RequestTool, Role, Stage } from '@/lib/types'
 
 export async function getQueue(): Promise<{ data: RequestTool[] | null; error: string | null }> {
@@ -104,14 +105,7 @@ export async function decideToolAction(
 
   if (error) return { error: error.message }
 
-  // Call edge function to notify
-  try {
-    await supabase.functions.invoke('notify-approval', {
-      body: { tool_id: toolId },
-    })
-  } catch {
-    // Non-fatal
-  }
+  notifyDecision(toolId).catch(() => {})
 
   return { success: true }
 }

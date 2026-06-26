@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { notifySubmission } from '@/lib/notify'
 import type { NewRequestInput, RequestTool } from '@/lib/types'
 
 export async function submitRequest(input: NewRequestInput) {
@@ -101,14 +102,7 @@ export async function submitRequest(input: NewRequestInput) {
 
   await supabase.from('tool_audit').insert(auditRows)
 
-  // Call edge function to notify
-  try {
-    await supabase.functions.invoke('notify-approval', {
-      body: { request_id: request.id },
-    })
-  } catch {
-    // Non-fatal: notification failure shouldn't block the submission
-  }
+  notifySubmission(request.id).catch(() => {})
 
   return { success: true, requestId: request.id }
 }
